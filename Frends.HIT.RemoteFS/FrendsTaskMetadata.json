@@ -1,0 +1,13 @@
+﻿{
+  "Tasks": [
+    {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.ListFiles"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.ReadFile"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.WriteFile"
+    }
+  ]
+}

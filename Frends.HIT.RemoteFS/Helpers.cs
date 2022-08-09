@@ -1,0 +1,185 @@
+﻿using System.Text.RegularExpressions;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using Newtonsoft.Json;
+using Renci.SshNet;
+
+namespace Frends.HIT.RemoteFS;
+
+class Helpers
+{
+    public static List<string> GetExactMatch(List<string> input, string filter)
+    {
+        return input.Where(x => x == filter).ToList();
+    }
+    
+    public static List<string> GetContainsMatch(List<string> input, string filter)
+    {
+        return input.Where(x => x.Contains(filter)).ToList();
+    }
+    
+    public static List<string> GetWildcardMatch(List<string> input, string filter)
+    {
+        filter = Regex.Escape(filter).Replace("\\*", ".*");
+        return GetRegexMatch(input, $"^{filter}$");
+    }
+    
+    public static List<string> GetRegexMatch(List<string> input, string filter)
+    {
+        return input.Where(x => Regex.IsMatch(x, filter)).ToList();
+    }
+
+    public static List<string> GetMatchingFiles(List<string> input, string filter, FilterTypes filterType)
+    {
+        switch (filterType)
+        {
+            case FilterTypes.Exact:
+                return GetExactMatch(input, filter);
+            case FilterTypes.Contains:
+                return GetContainsMatch(input, filter);
+            case FilterTypes.Wildcard:
+                return GetWildcardMatch(input, filter);
+            case FilterTypes.Regex:
+                return GetRegexMatch(input, filter);
+            default:
+                return input;
+        }
+    }
+    
+    public static string GetSMBConnectionString(
+        string server,
+        string username = "",
+        string password = "",
+        string domain = "",
+        string path = "",
+        string file = ""
+    )
+    {
+        var connection = new StringBuilder();
+        connection.Append("smb://");
+
+        if (!string.IsNullOrEmpty(domain))
+        {
+            connection.Append($"{domain};");
+        }
+        
+        if (!string.IsNullOrEmpty(username))
+        {
+            connection.Append($"{username}");
+            if (!string.IsNullOrEmpty(password))
+            {
+                connection.Append($":{password}");
+            }
+            connection.Append("@");
+        }
+        connection.Append(server);
+        
+        if (!path.StartsWith("/"))
+        {
+            connection.Append("/");
+        }
+
+        connection.Append(path);
+
+        if (path.Length > 0 && connection.ToString().EndsWith("/") == false && (string.IsNullOrEmpty(file) && string.IsNullOrWhiteSpace(file)))
+        {
+            connection.Append("/");
+        }
+
+        connection.Append(file);
+
+        return connection.ToString();
+    }
+    
+    /// <summary>
+    /// Saves a temporary copy of the private key string to file for usage
+    /// </summary>
+    /// <param name="key">The private key</param>
+    /// <returns>The path to the private key</returns>
+    private static String SaveTemporaryFile(String key)
+    {
+        var decodedKey = Convert.FromBase64String(key);
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, Encoding.UTF8.GetString(decodedKey));
+        return tempFile;
+    }
+    
+    /// <summary>
+    /// Retrieve a ConnectionInfo object for a given server
+    /// </summary>
+    /// <returns>The connection parameters</returns>
+    public static ConnectionInfo GetSFTPConnectionInfo(ServerConfiguration input)
+    {
+        var port = 22;
+        
+        string[] split = input.Address.Split(':');
+        string host = split[0];
+        
+        if (split.Length > 1) {
+            port = Int32.Parse(split[1]);
+        }
+        PrivateKeyFile privateKey;
+
+        var authMethods = new List<AuthenticationMethod>();
+        
+        if (String.IsNullOrEmpty(input.PrivateKey) == false)
+        {
+            string tempKeyLocation = SaveTemporaryFile(input.PrivateKey);
+            if (String.IsNullOrEmpty(input.PrivateKeyPassword) == false)
+            {
+                privateKey = new PrivateKeyFile(tempKeyLocation, input.PrivateKeyPassword);
+            }
+            else
+            {
+                privateKey = new PrivateKeyFile(tempKeyLocation);    
+            }
+
+            File.Delete(tempKeyLocation);
+            authMethods.Add(new PrivateKeyAuthenticationMethod(input.Username, privateKey));
+        }
+
+        if (String.IsNullOrEmpty(input.Password) == false)
+        {
+            authMethods.Add(new PasswordAuthenticationMethod(input.Username, input.Password));
+        }
+        
+        return new ConnectionInfo(
+            host: host,
+            port: port,
+            username: input.Username,
+            authenticationMethods: authMethods.ToArray()
+        );
+    }
+
+    public static MethodInfo? GetSubclassMethod(string typeName, string methodName)
+    {
+        var type = Type.GetType(typeName);
+        if (type == null)
+        {
+            return null;
+        }
+        return type.GetMethod(methodName);
+    }
+    
+    public static Encoding EncodingFromEnum(FileEncodings encoding) {
+        Encoding enc = Encoding.GetEncoding(
+            Enum.GetName(
+                typeof(FileEncodings), encoding
+            ).Replace(
+                "_", "-"
+            )
+        );
+        return enc;
+    }
+
+    public static string EnsureSlash(string input)
+    {
+        if (!input.EndsWith("/"))
+        {
+            return $"{input}/";
+        }
+
+        return input;
+    }
+}
