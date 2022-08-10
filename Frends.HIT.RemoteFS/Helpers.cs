@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Newtonsoft.Json;
 using Renci.SshNet;
+using SharpCifs.Util.Sharpen;
 
 namespace Frends.HIT.RemoteFS;
 
@@ -196,5 +197,70 @@ class Helpers
         }
 
         return input;
+    }
+
+    public static string FilenameSubstitutions(
+        string input, 
+        string sourceFilename = "", 
+        string objectGuid = "", 
+        int incremental = 0
+    )
+    {
+        if (String.IsNullOrEmpty(input))
+        {
+            return "";
+        }
+        
+        string sb = input;
+        var split = sourceFilename.Split('.');
+
+        var filenameParts = new string[split.Length - 1];
+        var extension = split[split.Length - 1];
+        
+        Array.Copy(split, 0, filenameParts, 0, filenameParts.Length);
+
+        // Insert filename and/or extension
+        sb = sb.Replace("{source_filename}", string.Join('.', filenameParts));
+        sb = sb.Replace("{source_extension}", extension);
+        
+        // Insert date/timestamp
+        sb = sb.Replace("{date}", DateTime.Now.ToString("yyyy-MM-dd"));
+        sb = sb.Replace("{time}", DateTime.Now.ToString("hh-mm-ss"));
+        
+        // Insert GUID
+        sb = sb.Replace("{guid}", objectGuid);
+        
+        // Insert incremental number
+        sb = sb.Replace("{incremental}", incremental.ToString());
+
+
+        return sb;
+    }
+
+    public static string JoinPath(params string[] parts)
+    {
+        var newPath = "";
+        if (parts[0].StartsWith("/"))
+        {
+            newPath += "/";
+        }
+
+        foreach (string part in parts)
+        {
+            if (newPath.EndsWith('/') && part.StartsWith('/'))
+            {
+                newPath += part.Substring(1);
+            }
+            else if (!newPath.EndsWith('/') && !part.StartsWith('/'))
+            {
+                newPath += "/" + part;
+                
+            }
+            else
+            {
+                newPath += part;
+            }
+        }
+        return newPath;
     }
 }

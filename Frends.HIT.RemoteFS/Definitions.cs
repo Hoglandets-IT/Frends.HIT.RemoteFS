@@ -612,21 +612,25 @@ public class BatchParams
     public FilterTypes SourceFilterType { get; set; }
     public string SourceFilterPattern { get; set; }
     
+    public FileEncodings SourceEncoding { get; set; }
+    
     public string DestinationServer { get; set; }
     public string DestinationPath { get; set; }
     public string DestinationFilename { get; set; }
     
+    public FileEncodings DestinationEncoding { get; set; }
+    
     public bool Overwrite { get; set; }
     public bool DeleteSource { get; set; }
 
-    public ServerConfiguration GetSourceConfig()
+    public ServerParams? GetSourceServerParams()
     {
-        return JsonConvert.DeserializeObject<ServerConfiguration>(SourceServer);
+        return new ServerParams().Create(ConfigurationType.Json, SourceServer);
     }
-    
-    public ServerConfiguration GetDestinationConfig()
+
+    public ServerParams? GetDestinationServerParams()
     {
-        return JsonConvert.DeserializeObject<ServerConfiguration>(DestinationServer);
+        return new ServerParams().Create(ConfigurationType.Json, DestinationServer);
     }
 }
 
@@ -763,18 +767,24 @@ public class BatchResult
     public string ObjectGuid { get; set; }
     public string SourceFile { get; set; }
     public string DestinationFile { get; set; }
+    public bool Success { get; set; }
+    public string Message { get; set; }
     public DateTime Timestamp { get; set; }
     
     public BatchResult(
         string objectGuid,
         string sourceFile,
         string destinationFile,
+        bool success,
+        string message,
         DateTime timestamp
     )
     {
         ObjectGuid = objectGuid;
         SourceFile = sourceFile;
         DestinationFile = destinationFile;
+        Success = success;
+        Message = message;
         Timestamp = timestamp;
     }
 }

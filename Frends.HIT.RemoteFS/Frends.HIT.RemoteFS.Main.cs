@@ -131,12 +131,40 @@ public class Main
     {
         var configServer = config.GetConfigurationServerParams();
         var backupServer = config.GetBackupServerParams();
-
+        string backupPath = "";
+        List<BatchResult> results = new List<BatchResult>();
+        
         foreach (BatchParams param in input)
         {
+            var sourceServer = param.GetSourceServerParams();
+            var destinationServer = param.GetDestinationServerParams();
+            
             int incremental = 0;
+            string configPath = config.ConfigPath;
+
             if (config.UseConfigServer)
             {
+                try
+                {
+                    if (!configPath.EndsWith("/"))
+                    {
+                        configPath += "/";
+                    }
+                    
+                    CreateDir(
+                        new CreateDirParams().Create(
+                            path: configPath,
+                            recursive: true
+                        ),
+                        configServer
+                    );
+                }
+                catch (Exception e)
+                {
+                        throw new Exception($"Could not create config directory {configPath}: ", e);
+                }
+                
+                
                 var isFile = ListFiles(
                     new ListParams().Create(
                       path: config.ConfigPath,
@@ -162,7 +190,7 @@ public class Main
 
             if (config.BackupFiles)
             {
-                string backupPath = config.BackupPath; 
+                backupPath = config.BackupPath; 
                 if (!config.BackupPath.EndsWith('/'))
                 {
                     backupPath = backupPath + '/';
@@ -178,33 +206,173 @@ public class Main
                     backupServer
                 );
             }
+
+            var fileList = ListFiles(
+                new ListParams().Create(
+                    path: param.SourcePath,
+                    filter: param.SourceFilterType,
+                    pattern: param.SourceFilterPattern
+                ),
+                sourceServer
+            );
+
+            foreach (var file in fileList.Files)
+            {
+                string errorStr = "";
+                string fileContents = "";
+
+                try
+                {
+                    fileContents = ReadFile(
+                        new ReadParams().Create(
+                            path: param.SourcePath,
+                            file: file,
+                            encoding: param.SourceEncoding
+                        ),
+                        sourceServer
+                    ).Content;
+                    
+                }
+                catch (Exception e)
+                {
+                    errorStr = $"Error reading file {sourceServer.Address}:{param.SourcePath}/{file}: {e.Message}";
+                }
+
+                string newFilename = "";
+                
+                if (errorStr == "")
+                {
+                    try
+                    {
+                        // Replace placeholders for new filename
+                        newFilename = Helpers.FilenameSubstitutions(
+                            input: param.DestinationFilename,
+                            sourceFilename: file,
+                            objectGuid: param.ObjectGuid,
+                            incremental: incremental
+                        );
+                    }
+                    catch (Exception e)
+                    {
+                        errorStr = $"Error substituting parameters {sourceServer.Address}:{param.SourcePath}/{file}: {e.Message}";
+                    }
+                }
+
+                if (errorStr == "")
+                {
+                    try
+                    {
+                        // Write file to destination
+                        WriteFile(
+                            new WriteParams().Create(
+                                path: param.DestinationPath,
+                                file: newFilename,
+                                overwrite: param.Overwrite,
+                                content: fileContents,
+                                encoding: param.DestinationEncoding
+                            ),
+                            destinationServer
+                        );
+                    }
+                    catch (Exception e)
+                    {
+                        errorStr = $"Error writing file {destinationServer.Address}:{param.DestinationPath}/{newFilename}: {e.Message}";
+                    }
+                }
+
+                if (errorStr == "")
+                {
+                    // If backup is enabled, also write file to backup server/folder
+                    if (config.BackupFiles)
+                    {
+                        string backupFilename = Helpers.FilenameSubstitutions(
+                            input: config.BackupFilename,
+                            file,
+                            param.ObjectGuid,
+                            incremental
+                        );
+
+                        try
+                        {
+                            WriteFile(
+                                new WriteParams().Create(
+                                    path: backupPath,
+                                    file: backupFilename,
+                                    overwrite: param.Overwrite,
+                                    content: fileContents,
+                                    encoding: param.DestinationEncoding
+                                ),
+                                backupServer
+                            );
+                        }
+                        catch (Exception e)
+                        {
+                            errorStr = $"Error writing backup file to {backupServer.Address}:{backupPath}/{backupFilename}: {e.Message}";
+                        }
+                        
+                        
+                    }
+                    
+                    // Delete source file if configured
+                    if (param.DeleteSource)
+                    {
+                        try
+                        {
+                            DeleteFile(
+                                new DeleteParams().Create(
+                                    path: param.SourcePath,
+                                    file: file
+                                ),
+                                sourceServer
+                            );
+                        }
+                        catch (Exception e)
+                        {
+                            errorStr = $"Error deleting source file {sourceServer.Address}:{param.SourcePath}/{file}: {e.Message}";
+                        }
+                    }
+                }
+                
+                results.Add(new BatchResult(
+                    objectGuid: param.ObjectGuid,
+                    sourceFile: Helpers.JoinPath($"{sourceServer.Username}{sourceServer.Address}", param.SourcePath, file),
+                    destinationFile: Helpers.JoinPath($"{destinationServer.Username}{destinationServer.Address}", param.DestinationPath, newFilename),
+                    success: errorStr == "",
+                    message: errorStr,
+                    timestamp: DateTime.Now
+                ));
+            }
+
+            incremental++;
             
-            
-            
-            
+            if (config.UseConfigServer)
+            {
+
+                try
+                {
+                    WriteFile(
+                        new WriteParams().Create(
+                            path: config.ConfigPath,
+                            file: $"{param.ObjectGuid}.json",
+                            overwrite: true,
+                            content: incremental.ToString(),
+                            encoding: FileEncodings.UTF_8
+                        ),
+                        configServer
+                    );
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Could not write config file {config.ConfigPath}/{param.ObjectGuid}.json: ", e);
+                }
+
+            }
         }
-        
-    
-        // Loop through BatchParams[]
-        // Check if Use backup is enabled, if so, get or create backup folder for integration
-        // Get file contents from source
-        // Write file contents to destination
-        // If backup is enabled, write file to backup server
-        // If incremental, increase number in config and save config file
 
         return new BatchResults(
-            count: 1,
-            new List<BatchResult>(
-                new BatchResult[] {
-                    new BatchResult(
-                        "true",
-                        "File transferred successfully",
-                        "File transferred successfully",
-                        new DateTime()
-                    )
-                }
-            )    
-            );
+            count: results.Count,
+            results: results
+        );
     }
     
     
