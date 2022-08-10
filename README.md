@@ -187,7 +187,7 @@ Enabled true/false - Whether to enable batch transfers.
 ### Configuration Storage
 For batch transfers, there is the option to store the persistent information for a task on a remote server. This is currently only used for storing incremental values, but will be extended to cover storage of logs and statistics.
 |Property|Type|Example Value|Description|
-|---|---|---|---|---|
+|---|---|---|---|
 |Use config server|bool|true|Whether to store configuration on a remote server|
 |Config server|string(json)|ServerConfigurationJson|The json string containing the server configuration|
 |Config path|string|somefolder/config|The path on the remote server to store the configuration|
@@ -195,7 +195,7 @@ For batch transfers, there is the option to store the persistent information for
 ### Backup Storage
 The option to store the copied files on a remote server for retention, useful if deleting the source file on every run.
 |Property|Type|Example Value|Description|
-|---|---|---|---|---|
+|---|---|---|---|
 |Backup files|bool|true|Whether to store the backup files on a remote server|
 |Backup to config server|bool|true|Whether to use the same server for configuration and backup storage|
 |Backup server|string(json)|ServerConfigurationJson|The json string containing the server configuration|
@@ -205,8 +205,10 @@ The option to store the copied files on a remote server for retention, useful if
 ### Batch Item
 A batch item is a set of configuration used to move one specific type of file. Each item has a unique identifier and a unique series of numbers (identifiers) if storage is enabled.
 
+
+
 |Property|Type|Example Value|Description|
-|---|---|---|---|---|
+|---|---|---|---|
 |Object Guid|string|3d8759f5-aef8-4f5d-885a-e36803ac3d91|The GUID for the batch item, can also be any other unique identifier string|
 |Source Server|string(json)|ServerConfigurationJson|The json string containing the server configuration|
 |Source Path|string|somefolder/source|The path on the remote server to store the source files|
