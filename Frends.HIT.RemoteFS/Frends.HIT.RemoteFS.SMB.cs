@@ -23,7 +23,7 @@ public class SMB
         }
         catch (Exception e)
         {
-            throw new Exception($"Error listing files: {connectionstring} {e.Message}");
+            throw new Exception($"Error listing files with user {connection.Username} (smb://{connection.Domain};{connection.Username}@{connection.Address}/{input.Path}) {e.Message}");
         }
 
     }
@@ -82,5 +82,47 @@ public class SMB
         var writeStream = file.GetOutputStream();
         writeStream.Write(encType.GetBytes(input.Content));
         writeStream.Dispose();
+    }
+
+    public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
+    {
+        var folder = new SmbFile(Helpers.GetSMBConnectionString(
+            server: connection.Address,
+            username: connection.Username,
+            password: connection.Password,
+            domain: connection.Domain,
+            path: input.Path
+        ));
+
+        if (folder.IsFile())
+        {
+            throw new Exception("The path cannot be created because there is a file with the same name present");
+        }
+
+        if (!folder.IsDirectory())
+        {
+            if (input.Recursive)
+            {
+                folder.Mkdirs();
+            }
+            else
+            {
+                folder.Mkdir();
+            }    
+        }
+    }
+    
+    public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
+    {
+        var file = new SmbFile(Helpers.GetSMBConnectionString(
+            server: connection.Address,
+            username: connection.Username,
+            password: connection.Password,
+            domain: connection.Domain,
+            path: input.Path,
+            file: input.File
+        ));
+
+        file.Delete();
     }
 }

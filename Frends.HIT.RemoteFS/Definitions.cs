@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Common;
+using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -210,6 +211,11 @@ public class ServerConfiguration
         PrivateKeyPassword = privatekeypassword;
         Fingerprint = fingerprint;
     }
+
+    public MethodInfo GetActionClass(string name)
+    {
+        return Helpers.GetSubclassMethod($"Frends.HIT.RemoteFS.{ConnectionType.ToString()}", name);
+    }
 }
 
 /// <summary>
@@ -276,8 +282,38 @@ public class ServerParams
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP)]
     public string Fingerprint { get; set; } = "";
 
+    public ServerParams Create(
+        ConfigurationType configurationtype,
+        string jsonconfiguration,
+        string address = "",
+        string domain = "",
+        string username = "",
+        string password = "",
+        string privatekey = "",
+        string privatekeypassword = "",
+        string fingerprint = ""
+    )
+    {
+        ConfigurationSource = configurationtype;
+        JsonConfiguration = jsonconfiguration;
+        Address = address;
+        Domain = domain;
+        Username = username;
+        Password = password;
+        PrivateKey = privatekey;
+        PrivateKeyPassword = privatekeypassword;
+        Fingerprint = fingerprint;
+
+        return this;
+    }
+
     public ServerConfiguration GetServerConfiguration()
     {
+        if (ConfigurationSource == ConfigurationType.Json)
+        {
+            return JsonConvert.DeserializeObject<ServerConfiguration>(JsonConfiguration);
+        }
+        
         return new ServerConfiguration(
             connectiontype: (ConnectionTypes)Enum.Parse(typeof(ConnectionTypes), ConfigurationSource.ToString()),
             address: Address,
@@ -317,6 +353,18 @@ public class ListParams
     [DefaultValue("")]
     [DisplayFormat(DataFormatString = "Text")]
     public string Pattern { get; set; }
+    
+    public ListParams Create(
+        string path,
+        FilterTypes filter,
+        string pattern
+    )
+    {
+        Path = path;
+        Filter = filter;
+        Pattern = pattern;
+        return this;
+    }
 }
 
 /// <summary>
@@ -345,6 +393,18 @@ public class ReadParams
     /// </summary>
     [DefaultValue(FileEncodings.UTF_8)]
     public FileEncodings Encoding { get; set; }
+
+    public ReadParams Create(
+        string path,
+        string file,
+        FileEncodings encoding
+    )
+    {
+        Path = path;
+        File = file;
+        Encoding = encoding;
+        return this;
+    }
 }
 
 [DisplayName("Parameters")]
@@ -382,6 +442,192 @@ public class WriteParams
     /// </summary>
     [DefaultValue(FileEncodings.UTF_8)]
     public FileEncodings Encoding { get; set; }
+    
+    public WriteParams Create(
+        string path,
+        string file,
+        string content,
+        bool overwrite,
+        FileEncodings encoding
+    )
+    {
+        Path = path;
+        File = file;
+        Content = content;
+        Overwrite = overwrite;
+        Encoding = encoding;
+
+        return this;
+    }
+}
+
+public class CreateDirParams
+{
+    [DefaultValue(null)]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string Path { get; set; }
+    
+    [DefaultValue(false)]
+    public bool Recursive { get; set; }
+    
+    public CreateDirParams Create(
+        string path,
+        bool recursive
+    )
+    {
+        Path = path;
+        Recursive = recursive;
+        return this;
+    }
+}
+
+/// <summary>
+/// Parameters for retrieving a directory listing from the remote server
+/// </summary>
+[DisplayName("Parameters")]
+public class DeleteParams
+{
+    /// <summary>
+    /// The path to the folder from which to delete files
+    /// </summary>
+    [DefaultValue(null)]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string Path { get; set; }
+
+    /// <summary>
+    /// The file in the folder above to delete
+    /// </summary>
+    [DefaultValue("")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string File { get; set; }
+    
+    public DeleteParams Create(
+        string path,
+        string file
+    )
+    {
+        Path = path;
+        File = file;
+        return this;
+    }
+}
+
+[DisplayName("General Configuration")]
+public class BatchConfigParams
+{
+    /// <summary>
+    /// Whether this set of batches is enabled or not
+    /// </summary>
+    [DefaultValue(true)]
+    public bool Enabled { get; set; }
+    
+    /// <summary>
+    /// Whether to store configuration on a server (e.g. for sequential filenames)
+    /// </summary>
+    [DefaultValue(true)]
+    public bool UseConfigServer { get; set; }
+    
+    /// <summary>
+    /// The configuration for the server storing the config information
+    /// </summary>
+    [DefaultValue(null)]
+    [UIHint(nameof(UseConfigServer), "", true)]
+    [DisplayFormat(DataFormatString = "Expression")]
+    public string ConfigServer { get; set; }
+    
+    /// <summary>
+    /// The path on the server where the config information is stored (not automatically created)
+    /// </summary>
+    [DefaultValue(null)]
+    [UIHint(nameof(UseConfigServer), "", true)]
+    public string ConfigPath { get; set; }
+    
+    /// <summary>
+    /// Whether to backup the files copied from source to destination
+    /// </summary>
+    [DefaultValue(false)]
+    public bool BackupFiles { get; set; }
+    
+    /// <summary>
+    /// Whether to backup the files to the same server used for the configuration above
+    /// </summary>
+    [DefaultValue(true)]
+    [UIHint(nameof(BackupFiles), "", true)]
+    public bool BackupToConfigServer { get; set; }
+    
+    /// <summary>
+    /// The server to use for backing up the files
+    /// </summary>
+    [UIHint(nameof(BackupToConfigServer), "", false)]
+    [DisplayFormat(DataFormatString = "Expression")]
+    public string BackupServer { get; set; }
+    
+    /// <summary>
+    /// The path on the server to use for backing up the files
+    /// </summary>
+    [DefaultValue(null)]
+    [UIHint(nameof(BackupFiles), "", true)]
+    public string BackupPath { get; set; }
+    
+    /// <summary>
+    /// The filename to set when backing up the files
+    /// All substitutions available in the batch configuration are available in the filename
+    /// </summary>
+    [DefaultValue(null)]
+    [UIHint(nameof(BackupFiles), "", true)]
+    public string BackupFilename { get; set; }
+    
+    public ServerParams? GetConfigurationServerParams()
+    {
+        if (Enabled && UseConfigServer)
+        {
+            return new ServerParams().Create(ConfigurationType.Json, ConfigServer);
+        }
+
+        return null;
+    }
+    
+    public ServerParams? GetBackupServerParams()
+    {
+        if (BackupFiles)
+        {
+            if (BackupToConfigServer)
+            {
+                return GetConfigurationServerParams();
+            }
+
+            return new ServerParams().Create(ConfigurationType.Json, BackupServer);
+        }
+
+        return null;
+    }
+}
+
+[DisplayName("Batches")]
+public class BatchParams
+{
+    public string ObjectGuid { get; set; }
+    public string SourceServer { get; set; }
+    public string SourcePath { get; set; }
+    public FilterTypes SourceFilterType { get; set; }
+    public string SourceFilterPattern { get; set; }
+    
+    public string DestinationServer { get; set; }
+    public string DestinationPath { get; set; }
+    public string DestinationFilename { get; set; }
+    
+    public bool Overwrite { get; set; }
+    public bool DeleteSource { get; set; }
+
+    public ServerConfiguration GetSourceConfig()
+    {
+        return JsonConvert.DeserializeObject<ServerConfiguration>(SourceServer);
+    }
+    
+    public ServerConfiguration GetDestinationConfig()
+    {
+        return JsonConvert.DeserializeObject<ServerConfiguration>(DestinationServer);
+    }
 }
 
 /// <summary>
@@ -470,5 +716,87 @@ public class WriteResult
         Success = success;
         Path = path;
         Encoding = encoding;
+    }
+}
+
+public class CreateDirResult
+{
+    /// <summary>
+    /// Whether the directory creation was successful
+    /// </summary>
+    public bool Success { get; set; }
+    
+    public CreateDirResult(bool success) => Success = success;
+}
+
+public class CopyResult
+{
+    /// <summary>
+    /// Whether the write was successful
+    /// </summary>
+    public bool Success { get; set; }
+    
+    public CopyResult(bool success) => Success = success;
+}
+
+public class DeleteResult
+{
+    /// <summary>
+    /// Whether the write was successful
+    /// </summary>
+    public bool Success { get; set; }
+    
+    /// <summary>
+    /// The path that was deleted
+    /// </summary>
+    public string Path { get; set; }
+    
+    public DeleteResult(bool success, string path)
+    {
+        Success = success;
+        Path = path;
+    }
+}
+
+public class BatchResult
+{
+    public string ObjectGuid { get; set; }
+    public string SourceFile { get; set; }
+    public string DestinationFile { get; set; }
+    public DateTime Timestamp { get; set; }
+    
+    public BatchResult(
+        string objectGuid,
+        string sourceFile,
+        string destinationFile,
+        DateTime timestamp
+    )
+    {
+        ObjectGuid = objectGuid;
+        SourceFile = sourceFile;
+        DestinationFile = destinationFile;
+        Timestamp = timestamp;
+    }
+}
+
+public class BatchResults
+{
+    /// <summary>
+    /// Number of transfers completed successfully
+    /// </summary>
+    public int Count { get; set; }
+    
+    /// <summary>
+    /// The list of results for each transfer
+    /// </summary>
+    public List<BatchResult> Results { get; set; }
+    
+    public BatchResults(
+        int count,
+        List<BatchResult> results
+    )
+    {
+        Count = count;
+        Results = results;
     }
 }

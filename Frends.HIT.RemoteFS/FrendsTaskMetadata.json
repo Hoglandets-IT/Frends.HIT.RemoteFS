@@ -8,6 +8,18 @@
     },
     {
       "TaskMethod": "Frends.HIT.RemoteFS.Main.WriteFile"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.DeleteFile"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.CreateDir"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.CopyFile"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.BatchTransfer"
     }
   ]
 }

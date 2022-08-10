@@ -15,7 +15,7 @@ public class FTP
     {
         var result = new List<string>();
 
-        Int32 port = 22;
+        Int32 port = 21;
         string[] split = connection.Address.Split(':');
             
         string host = split[0];
@@ -141,5 +141,60 @@ public class FTP
             memStream.Dispose();
             client.Disconnect();
         }
+    }
+
+    public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
+    {
+        Int32 port = 21;
+        string[] split = connection.Address.Split(':');
+            
+        string host = split[0];
+        if (split.Length > 1) {
+            port = Int32.Parse(split[1]);
+        }
+        
+        using (FtpClient client = new FtpClient(host, port, connection.Username, connection.Password))
+        {
+            client.AutoConnect();
+            client.CreateDirectory(input.Path, input.Recursive);
+            client.Disconnect();
+        }
+    }
+
+    public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
+    {
+        Int32 port = 21;
+        string[] split = connection.Address.Split(':');
+            
+        string host = split[0];
+        if (split.Length > 1) {
+            port = Int32.Parse(split[1]);
+        }
+
+        string path = "";
+
+        if (string.IsNullOrEmpty(input.File))
+        {
+            path = input.Path;
+        }
+        else
+        {
+            if (input.Path.EndsWith("/"))
+            {
+                path = input.Path + input.File;
+            }
+            else
+            {
+                path = string.Join("/", input.Path, input.File);
+            }
+        }
+        
+        using (FtpClient client = new FtpClient(host, port, connection.Username, connection.Password))
+        {
+            client.AutoConnect();
+            client.DeleteFile(path);
+            client.Disconnect();
+        }
+        
     }
 }

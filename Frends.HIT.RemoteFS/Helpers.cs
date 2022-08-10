@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Newtonsoft.Json;
 using Renci.SshNet;
@@ -46,6 +47,11 @@ class Helpers
                 return input;
         }
     }
+
+    public static bool IsValidString(string input)
+    {
+        return !string.IsNullOrEmpty(input) && !string.IsNullOrWhiteSpace(input) && input.Length > 0;
+    }
     
     public static string GetSMBConnectionString(
         string server,
@@ -56,40 +62,49 @@ class Helpers
         string file = ""
     )
     {
-        var connection = new StringBuilder();
-        connection.Append("smb://");
+        
+        var sb = new StringBuilder("smb://");
 
-        if (!string.IsNullOrEmpty(domain))
-        {
-            connection.Append($"{domain};");
-        }
+        path = path.Replace("\\", "/");
+        file = file.Replace("\\", "/");
         
-        if (!string.IsNullOrEmpty(username))
+        if (IsValidString(domain))
         {
-            connection.Append($"{username}");
-            if (!string.IsNullOrEmpty(password))
+            sb.Append($"{domain};");
+        }
+
+        if (IsValidString(username))
+        {
+            sb.Append($"{username}");
+            
+            if (IsValidString(password))
             {
-                connection.Append($":{password}");
+                sb.Append($":{password}");
             }
-            connection.Append("@");
+            
+            sb.Append("@");
         }
-        connection.Append(server);
         
+        sb.Append($"{server}");
+
         if (!path.StartsWith("/"))
         {
-            connection.Append("/");
+            sb.Append("/");
         }
+        
+        sb.Append(path);
 
-        connection.Append(path);
-
-        if (path.Length > 0 && connection.ToString().EndsWith("/") == false && (string.IsNullOrEmpty(file) && string.IsNullOrWhiteSpace(file)))
+        if (!path.EndsWith("/") && !file.StartsWith("/"))
         {
-            connection.Append("/");
+            sb.Append("/");
         }
-
-        connection.Append(file);
-
-        return connection.ToString();
+        
+        if (IsValidString(file))
+        {
+            sb.Append(file);
+        }
+        
+        return sb.ToString();
     }
     
     /// <summary>
