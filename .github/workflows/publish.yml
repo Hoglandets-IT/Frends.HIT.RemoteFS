@@ -16,10 +16,12 @@ jobs:
         v3=$((v3 + 1))
         VERSION="$v1.$v2.$v3"
         echo "Building version: $VERSION"
-        dotnet pack --configuration Release --include-source --output . /p:Version=$VERSION Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.csproj
-        dotnet nuget push "Frends.HIT.RemoteFS.$VERSION.nupkg" --source https://proget.hoglan.dev/nuget/Frends/ --api-key "$APIKEY"
+        # dotnet pack --configuration Release --include-source --output . /p:Version=$VERSION Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.csproj
+        # dotnet nuget push "Frends.HIT.RemoteFS.$VERSION.nupkg" --source https://proget.hoglan.dev/nuget/Frends/ --api-key "$APIKEY"
         echo "$VERSION" > VERSION
         rm -f ./Frends.HIT.RemoteFS.*.nupkg
+        git config user.email "autopush@hoglan.dev"
+        git config user.name "AutoPush"
         git commit -m "[AUTO] Increment version number"
         git push origin main
         echo "Done"
