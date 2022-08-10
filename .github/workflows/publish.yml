@@ -22,6 +22,7 @@ jobs:
         rm -f ./Frends.HIT.RemoteFS.*.nupkg
         git config user.email "autopush@hoglan.dev"
         git config user.name "AutoPush"
+        git add VERSION
         git commit -m "[AUTO] Increment version number"
         git push origin main
         echo "Done"
