@@ -1,0 +1,17 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build and push
+      run: ./quickbuild.sh ${{ secrets.HOG_NUGET }}
+    - name: Publish back to github main branch
+      run: |
+        git commit -m "[AUTO] Increment version number" 
+        git push origin main
