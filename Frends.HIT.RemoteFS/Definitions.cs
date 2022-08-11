@@ -646,7 +646,7 @@ public class BatchConfigParams
 [DisplayName("Batches")]
 public class BatchParams
 {
-    public string ObjectGuid { get; set; } = Helpers.GetGuid();
+    public string ObjectGuid { get; set; }
     public string SourceServer { get; set; }
     public string SourcePath { get; set; }
     public FilterTypes SourceFilterType { get; set; }
