@@ -646,7 +646,20 @@ public class BatchConfigParams
 [DisplayName("Batches")]
 public class BatchParams
 {
-    public string ObjectGuid { get; set; }
+    [DefaultValue("")]
+    [UIHint(nameof(ObjectGuid), "", null)]
+    private string GuidV { get; set; }
+    public string ObjectGuid
+    {
+        get
+        {
+            return (GuidV == "" ? GuidV : Guid.NewGuid().ToString());
+        }
+        set
+        {
+            GuidV = value;
+        }
+    }
     public string SourceServer { get; set; }
     public string SourcePath { get; set; }
     public FilterTypes SourceFilterType { get; set; }

@@ -11,6 +11,11 @@ namespace Frends.HIT.RemoteFS;
 
 class Helpers
 {
+    public static string GetGuid()
+    {
+        return Guid.NewGuid().ToString();
+    }
+    
     public static List<string> GetExactMatch(List<string> input, string filter)
     {
         return input.Where(x => x == filter).ToList();
