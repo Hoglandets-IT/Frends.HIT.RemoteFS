@@ -113,12 +113,12 @@ public class Main
     public static CopyResult CopyFile(
         [PropertyTab] ReadParams sourceInput,
         [PropertyTab] ServerParams sourceConnection,
-        [PropertyTab] WriteParams destinationInput,
+        [PropertyTab] CopyDestParams destinationInput,
         [PropertyTab] ServerParams destinationConnection
     )
     {
         var file = ReadFile(sourceInput, sourceConnection);
-        WriteFile(destinationInput, destinationConnection);
+        WriteFile(destinationInput.GetWriteParams(file.Content), destinationConnection);
 
         return new CopyResult(true);
     }

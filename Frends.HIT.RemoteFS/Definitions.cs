@@ -461,6 +461,46 @@ public class WriteParams
     }
 }
 
+public class CopyDestParams
+{
+    /// <summary>
+    /// The path to where the file is to be written
+    /// </summary>
+    [DefaultValue(null)]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string Path { get; set; }
+    
+    /// <summary>
+    /// The name of the file
+    /// </summary>
+    [DefaultValue("")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string File { get; set; }
+    
+    /// <summary>
+    /// Whether to overwrite the file if it already exists
+    /// </summary>
+    [DefaultValue(null)]
+    public bool Overwrite { get; set; }
+    
+    /// <summary>
+    /// The encoding to use for writing to the file
+    /// </summary>
+    [DefaultValue(FileEncodings.UTF_8)]
+    public FileEncodings Encoding { get; set; }
+    
+    public WriteParams GetWriteParams(string content)
+    {
+        return new WriteParams().Create(
+            path: Path,
+            file: File,
+            content: content,
+            overwrite: Overwrite,
+            encoding: Encoding
+        );
+    }
+}
+
 public class CreateDirParams
 {
     [DefaultValue(null)]
