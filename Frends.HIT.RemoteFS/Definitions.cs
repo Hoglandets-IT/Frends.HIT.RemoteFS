@@ -12,18 +12,33 @@ namespace Frends.HIT.RemoteFS;
 /// </summary>
 public enum FileEncodings
 {
+    /// <summary>
+    /// UTF-8 Encoding
+    /// </summary>
     [Display(Name = "UTF-8")]
     UTF_8,
     
+    /// <summary>
+    /// UTF-32 Encoding
+    /// </summary>
     [Display(Name = "UTF-32")]
     UTF_32,
     
+    /// <summary>
+    /// ISO8859-1 Encoding
+    /// </summary>
     [Display(Name = "ISO-8859-1")]
     ISO_8859_1,
     
+    /// <summary>
+    /// ASCII Encoding
+    /// </summary>
     [Display(Name = "ASCII")]
     ASCII,
     
+    /// <summary>
+    /// Latin-1 Encoding
+    /// </summary>
     [Display(Name = "Latin-1")]
     LATIN_1
 }
@@ -33,12 +48,21 @@ public enum FileEncodings
 /// </summary>
 public enum ConnectionTypes
 {
+    /// <summary>
+    /// SMB/Samba (former CIFS), Windows fileshare
+    /// </summary>
     [Display(Name = "Samba/SMB/CIFS")]
     SMB,
     
+    /// <summary>
+    /// FTP, File Transfer Protocol
+    /// </summary>
     [Display(Name = "FTP")]
     FTP,
     
+    /// <summary>
+    /// SFTP, Secure File Transfer Protocol
+    /// </summary>
     [Display(Name = "SFTP")]
     SFTP
 }
@@ -48,19 +72,34 @@ public enum ConnectionTypes
 /// </summary>
 public enum ConfigurationType
 {
+    /// <summary>
+    /// From a Json configuration string
+    /// </summary>
     [Display(Name = "JSON String")]
     Json,
     
+    /// <summary>
+    /// Manual Config - SMB/CIFS
+    /// </summary>
     [Display(Name = "Samba/SMB/CIFS")]
     SMB,
     
+    /// <summary>
+    /// Manual Config - FTP
+    /// </summary>
     [Display(Name = "FTP")]
     FTP,
     
+    /// <summary>
+    /// Manual Config - SFTP
+    /// </summary>
     [Display(Name = "SFTP")]
     SFTP
 }
 
+/// <summary>
+/// Types of filters used for finding and deleting files in directories
+/// </summary>
 public enum FilterTypes
 {
     /// <summary>
@@ -104,48 +143,61 @@ public class ServerConfiguration
     /// The type of connection
     /// </summary>
     [DefaultValue(ConnectionTypes.SMB)]
+    [Display(Name = "Remote Server Type")]
     public ConnectionTypes ConnectionType { get; set; }
 
     /// <summary>
     /// The hostname or IP address of the server
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
+    [Display(Name = "Hostname/IP Address")]
     public string Address { get; set; }
     
     /// <summary>
     /// (optional) The domain of the SMB user for AD environments 
     /// </summary>
+    [DefaultValue("")]
     [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB)]
-    public string Domain { get; set; } = "";
+    [Display(Name = "LDAP/AD Domain")]
+    public string Domain { get; set; }
     
     /// <summary>
     /// The username used for connecting to the remote server
     /// </summary>
+    [Display(Name = "Username")]
     public string Username { get; set; }
 
     /// <summary>
     /// The password used for connecting to the remote server
     /// </summary>
+    [DefaultValue("")]
     [PasswordPropertyText]
-    public string Password { get; set; } = "";
+    [Display(Name = "Password")]
+    public string Password { get; set; }
 
     /// <summary>
     /// The PrivateKey used for connecting to the remote SFTP server
     /// </summary>
+    [DefaultValue("")]
     [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP)]
-    public string PrivateKey { get; set; } = "";
+    [Display(Name = "OpenSSH Private Key")]
+    public string PrivateKey { get; set; }
     
     /// <summary>
     /// (optional) The password for the private key above
     /// </summary>
+    [DefaultValue("")]
     [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP)]
-    public string PrivateKeyPassword { get; set; } = "";
+    [Display(Name = "Private Key Password/Passphrase")]
+    public string PrivateKeyPassword { get; set; }
     
     /// <summary>
     /// (optional) The fingerprint of the SFTP server for verification
     /// </summary>
+    [DefaultValue("")]
     [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP)]
-    public string Fingerprint { get; set; } = "";
+    [Display(Name = "Verify Fingerprint")]
+    public string Fingerprint { get; set; }
 
     /// <summary>
     /// Initialize a new ServerConfiguration object
@@ -212,6 +264,11 @@ public class ServerConfiguration
         Fingerprint = fingerprint;
     }
 
+    /// <summary>
+    /// Get the method for a given string operation
+    /// </summary>
+    /// <param name="name">The name of the method</param>
+    /// <returns>Method</returns>
     public MethodInfo GetActionClass(string name)
     {
         return Helpers.GetSubclassMethod($"Frends.HIT.RemoteFS.{ConnectionType.ToString()}", name);
@@ -236,6 +293,7 @@ public class ServerParams
     [DefaultValue("")]
     [DisplayFormat(DataFormatString = "Expression")]
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.Json)]
+    [Display(Name = "Json Server Configuration")]
     public string JsonConfiguration { get; set; } = "";
 
     /// <summary>
@@ -243,18 +301,21 @@ public class ServerParams
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.FTP, ConfigurationType.SFTP, ConfigurationType.SMB)]
+    [Display(Name = "Hostname/IP Address")]
     public string Address { get; set; } = "";
     
     /// <summary>
     /// (optional) The domain of the SMB user for AD environments 
     /// </summary>
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SMB)]
+    [Display(Name = "AD/LDAP Domain")]
     public string Domain { get; set; } = "";
 
     /// <summary>
     /// The username used for connecting to the remote server
     /// </summary>
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.FTP, ConfigurationType.SFTP, ConfigurationType.SMB)]
+    [Display(Name = "Username")]
     public string Username { get; set; } = "";
 
     /// <summary>
@@ -262,29 +323,36 @@ public class ServerParams
     /// </summary>
     [PasswordPropertyText]
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.FTP, ConfigurationType.SFTP, ConfigurationType.SMB)]
+    [Display(Name = "Password")]
     public string Password { get; set; } = "";
 
     /// <summary>
     /// The PrivateKey used for connecting to the remote SFTP server
     /// </summary>
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP)]
+    [Display(Name = "OpenSSH Private Key")]
     public string PrivateKey { get; set; } = "";
     
 	/// <summary>
     /// The PrivateKey used for connecting to the remote SFTP server
     /// </summary>
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP)]
+    [Display(Name = "Private Key Password")]
     public string PrivateKeyPassword { get; set; } = "";
 
     /// <summary>
     /// (optional) The fingerprint of the SFTP server for verification
     /// </summary>
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP)]
+    [Display(Name = "Fingerprint")]
     public string Fingerprint { get; set; } = "";
 
+    /// <summary>
+    /// Initialize a new class of the type ServerParams
+    /// </summary>
     public ServerParams Create(
-        ConfigurationType configurationtype,
-        string jsonconfiguration,
+        ConfigurationType configurationType,
+        string jsonConfiguration,
         string address = "",
         string domain = "",
         string username = "",
@@ -294,8 +362,8 @@ public class ServerParams
         string fingerprint = ""
     )
     {
-        ConfigurationSource = configurationtype;
-        JsonConfiguration = jsonconfiguration;
+        ConfigurationSource = configurationType;
+        JsonConfiguration = jsonConfiguration;
         Address = address;
         Domain = domain;
         Username = username;
@@ -307,6 +375,10 @@ public class ServerParams
         return this;
     }
 
+    /// <summary>
+    /// Get the server configuration object from the parameters
+    /// </summary>
+    /// <returns>ServerConfiguration</returns>
     public ServerConfiguration GetServerConfiguration()
     {
         if (ConfigurationSource == ConfigurationType.Json)
@@ -345,15 +417,19 @@ public class ListParams
     /// Choose whether and how to filter the results of the listing
     /// </summary>
     [DefaultValue(FilterTypes.None)]
-    public FilterTypes Filter { get; set; }
-    
+    public FilterTypes Filter { get; set; } = FilterTypes.None;
+
     /// <summary>
     /// The pattern to use to match the files against
     /// </summary>
     [DefaultValue("")]
     [DisplayFormat(DataFormatString = "Text")]
-    public string Pattern { get; set; }
+    public string Pattern { get; set; } = "";
     
+    /// <summary>
+    /// Creates a new instance of the class ListParams
+    /// </summary>
+    /// <returns>ListParams</returns>
     public ListParams Create(
         string path,
         FilterTypes filter,
@@ -373,14 +449,14 @@ public class ListParams
 [DisplayName("Parameters")]
 public class ReadParams
 {
-    
+
     /// <summary>
     /// The path to the file for which to retrieve the content
     /// </summary>
     [DefaultValue("")]
     [DisplayFormat(DataFormatString = "Text")]
     public string Path { get; set; }
-    
+
     /// <summary>
     /// The name of the file
     /// </summary>
@@ -394,6 +470,10 @@ public class ReadParams
     [DefaultValue(FileEncodings.UTF_8)]
     public FileEncodings Encoding { get; set; }
 
+    /// <summary>
+    /// Creates a new instance of the class ReadParams
+    /// </summary>
+    /// <returns>ReadParams</returns>
     public ReadParams Create(
         string path,
         string file,
@@ -443,6 +523,10 @@ public class WriteParams
     [DefaultValue(FileEncodings.UTF_8)]
     public FileEncodings Encoding { get; set; }
     
+    /// <summary>
+    /// Creates a new instance of the class WriteParams
+    /// </summary>
+    /// <returns>WriteParams</returns>
     public WriteParams Create(
         string path,
         string file,
@@ -461,6 +545,9 @@ public class WriteParams
     }
 }
 
+/// <summary>
+/// Parameters for the destination of the Copy function (WriteParams minus Content)
+/// </summary>
 public class CopyDestParams
 {
     /// <summary>
@@ -489,6 +576,11 @@ public class CopyDestParams
     [DefaultValue(FileEncodings.UTF_8)]
     public FileEncodings Encoding { get; set; }
     
+    /// <summary>
+    /// Gets the WriteParams object from the class parameters and content
+    /// </summary>
+    /// <param name="content"></param>
+    /// <returns></returns>
     public WriteParams GetWriteParams(string content)
     {
         return new WriteParams().Create(
@@ -501,15 +593,30 @@ public class CopyDestParams
     }
 }
 
+/// <summary>
+/// Properties for the Create directory function
+/// </summary>
 public class CreateDirParams
 {
+    /// <summary>
+    /// The path to the directory/-ies to create
+    /// </summary>
     [DefaultValue(null)]
     [DisplayFormat(DataFormatString = "Text")]
-    public string Path { get; set; }
+    public string? Path { get; set; }
     
+    /// <summary>
+    /// Whether to create all directories in the tree automatically
+    /// </summary>
     [DefaultValue(false)]
-    public bool Recursive { get; set; }
+    public bool? Recursive { get; set; }
     
+    /// <summary>
+    /// Parameters for creating a directory
+    /// </summary>
+    /// <param name="path">The path to the directory/-ies</param>
+    /// <param name="recursive">Whether to automatically create all folders in the tree</param>
+    /// <returns></returns>
     public CreateDirParams Create(
         string path,
         bool recursive
@@ -541,6 +648,10 @@ public class DeleteParams
     [DisplayFormat(DataFormatString = "Text")]
     public string File { get; set; }
     
+    /// <summary>
+    /// Creates a new DeleteParams object
+    /// </summary>
+    /// <returns>DeleteParams</returns>
     public DeleteParams Create(
         string path,
         string file
@@ -552,6 +663,9 @@ public class DeleteParams
     }
 }
 
+/// <summary>
+/// Configuration for batch transfers between servers
+/// </summary>
 [DisplayName("General Configuration")]
 public class BatchConfigParams
 {
@@ -617,6 +731,10 @@ public class BatchConfigParams
     [UIHint(nameof(BackupFiles), "", true)]
     public string BackupFilename { get; set; }
     
+    /// <summary>
+    /// Get the parameters for the configuration server
+    /// </summary>
+    /// <returns>ServerParams</returns>
     public ServerParams? GetConfigurationServerParams()
     {
         if (Enabled && UseConfigServer)
@@ -627,6 +745,10 @@ public class BatchConfigParams
         return null;
     }
     
+    /// <summary>
+    /// Get the parameters for the backup server
+    /// </summary>
+    /// <returns></returns>
     public ServerParams? GetBackupServerParams()
     {
         if (BackupFiles)
@@ -643,31 +765,87 @@ public class BatchConfigParams
     }
 }
 
+/// <summary>
+/// Configuration for the files to be transferred for each batch
+/// </summary>
 [DisplayName("Batches")]
 public class BatchParams
 {
+    /// <summary>
+    /// The GUID/Unique identifier for the batch item
+    /// </summary>
+    [DefaultValue("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")]
     public string ObjectGuid { get; set; }
+    
+    /// <summary>
+    /// The source server configuration (JSON)
+    /// </summary>
     public string SourceServer { get; set; }
+    
+    /// <summary>
+    /// The path on the source server to check
+    /// </summary>
     public string SourcePath { get; set; }
+    
+    /// <summary>
+    /// The filter type to use for finding the files on the source server
+    /// </summary>
     public FilterTypes SourceFilterType { get; set; }
+    
+    /// <summary>
+    /// The pattern to apply on the files on the source server
+    /// </summary>
     public string SourceFilterPattern { get; set; }
     
+    /// <summary>
+    /// The encoding to use when reading the file from the source server
+    /// </summary>
     public FileEncodings SourceEncoding { get; set; }
     
+    /// <summary>
+    /// The configuration for the destination server (JSON)
+    /// </summary>
     public string DestinationServer { get; set; }
+    
+    /// <summary>
+    /// The path on the destination server to copy the files to
+    /// </summary>
     public string DestinationPath { get; set; }
+    
+    /// <summary>
+    /// The filename to set for the files copied to the destination server
+    /// Substitutions are available, check documentation
+    /// </summary>
     public string DestinationFilename { get; set; }
     
+    /// <summary>
+    /// The encoding to use when writing the file to the destination server
+    /// </summary>
     public FileEncodings DestinationEncoding { get; set; }
     
+    /// <summary>
+    /// Whether to overwrite the file if it exists on the destination server
+    /// </summary>
     public bool Overwrite { get; set; }
+    
+    /// <summary>
+    /// Whether to delete the source file if the transfer was successful
+    /// </summary>
     public bool DeleteSource { get; set; }
 
+    /// <summary>
+    /// Get the ServerParams for the source server
+    /// </summary>
+    /// <returns>ServerParams</returns>
     public ServerParams? GetSourceServerParams()
     {
         return new ServerParams().Create(ConfigurationType.Json, SourceServer);
     }
 
+    /// <summary>
+    /// Get the ServerParams for the destination server
+    /// </summary>
+    /// <returns>ServerParams</returns>
     public ServerParams? GetDestinationServerParams()
     {
         return new ServerParams().Create(ConfigurationType.Json, DestinationServer);
@@ -689,6 +867,9 @@ public class ListResult
     /// </summary>
     public List<string> Files { get; set; }
 
+    /// <summary>
+    /// Create a new ListResult object
+    /// </summary>
     public ListResult(
         int count,
         List<string> files
@@ -719,6 +900,9 @@ public class ReadResult
     /// </summary>
     public FileEncodings Encoding { get; set; }
 
+    /// <summary>
+    /// Create a new ReadResult object
+    /// </summary>
     public ReadResult(
         string content,
         string path,
@@ -751,6 +935,9 @@ public class WriteResult
     /// </summary>
     public FileEncodings Encoding { get; set; }
 
+    /// <summary>
+    /// Create a new WriteResult object
+    /// </summary>
     public WriteResult(
         bool success,
         string path,
@@ -770,6 +957,9 @@ public class CreateDirResult
     /// </summary>
     public bool Success { get; set; }
     
+    /// <summary>
+    /// Create a new CreateDirResult object
+    /// </summary>
     public CreateDirResult(bool success) => Success = success;
 }
 
@@ -780,6 +970,9 @@ public class CopyResult
     /// </summary>
     public bool Success { get; set; }
     
+    /// <summary>
+    /// Create a new CopyResult object
+    /// </summary>
     public CopyResult(bool success) => Success = success;
 }
 
@@ -795,6 +988,9 @@ public class DeleteResult
     /// </summary>
     public string Path { get; set; }
     
+    /// <summary>
+    /// Create a new DeleteResult object
+    /// </summary>
     public DeleteResult(bool success, string path)
     {
         Success = success;
@@ -804,13 +1000,39 @@ public class DeleteResult
 
 public class BatchResult
 {
+    /// <summary>
+    /// The Guid of the Batch item
+    /// </summary>
     public string ObjectGuid { get; set; }
+    
+    /// <summary>
+    /// The source file that was moved
+    /// </summary>
     public string SourceFile { get; set; }
+    
+    /// <summary>
+    /// The destination file that was moved
+    /// </summary>
     public string DestinationFile { get; set; }
+    
+    /// <summary>
+    /// Whether the transfer was successful
+    /// </summary>
     public bool Success { get; set; }
+    
+    /// <summary>
+    /// The error message in case the move was not successful
+    /// </summary>
     public string Message { get; set; }
+    
+    /// <summary>
+    /// The timestamp when the transfer took place
+    /// </summary>
     public DateTime Timestamp { get; set; }
     
+    /// <summary>
+    /// Create a new BatchResult object
+    /// </summary>
     public BatchResult(
         string objectGuid,
         string sourceFile,
@@ -829,6 +1051,9 @@ public class BatchResult
     }
 }
 
+/// <summary>
+/// The results for batch task
+/// </summary>
 public class BatchResults
 {
     /// <summary>
@@ -841,6 +1066,9 @@ public class BatchResults
     /// </summary>
     public List<BatchResult> Results { get; set; }
     
+    /// <summary>
+    /// Create a new BatchResults object
+    /// </summary>
     public BatchResults(
         int count,
         List<BatchResult> results

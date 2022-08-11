@@ -10,7 +10,6 @@ public class FTP
     /// </summary>
     /// <param name="input">The path to the directory to list, and regex to filter files</param>
     /// <param name="connection">The connection details for the server</param>
-    /// <returns></returns>
     public static List<string> ListFiles(ListParams input, ServerConfiguration connection)
     {
         var result = new List<string>();
@@ -41,6 +40,11 @@ public class FTP
         return result;
     }
 
+    /// <summary>
+    /// Read a file from an FTP Server
+    /// </summary>
+    /// <param name="input">The params to identify the file</param>
+    /// <param name="connection">The connection settings</param>
     public static string ReadFile(ReadParams input, ServerConfiguration connection)
     {
         Int32 port = 21;
@@ -91,6 +95,11 @@ public class FTP
         }
     }
     
+    /// <summary>
+    /// Write a file to a FTP server
+    /// </summary>
+    /// <param name="input">The params to identify the file and contents</param>
+    /// <param name="connection">The connection settings</param>
     public static void WriteFile(WriteParams input, ServerConfiguration connection)
     {
         Int32 port = 21;
@@ -143,6 +152,11 @@ public class FTP
         }
     }
 
+    /// <summary>
+    /// Create a directory on a FTP server
+    /// </summary>
+    /// <param name="input">The params to identify the directory</param>
+    /// <param name="connection">The connection settings</param>
     public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
         Int32 port = 21;
@@ -156,11 +170,16 @@ public class FTP
         using (FtpClient client = new FtpClient(host, port, connection.Username, connection.Password))
         {
             client.AutoConnect();
-            client.CreateDirectory(input.Path, input.Recursive);
+            client.CreateDirectory(input.Path, input.Recursive ?? false);
             client.Disconnect();
         }
     }
 
+    /// <summary>
+    /// Delete a file from an FTP Server
+    /// </summary>
+    /// <param name="input">The params to identify the file</param>
+    /// <param name="connection">The connection settings</param>
     public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
         Int32 port = 21;

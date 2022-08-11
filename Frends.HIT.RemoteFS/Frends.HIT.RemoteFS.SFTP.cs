@@ -13,7 +13,6 @@ public class SFTP
     /// </summary>
     /// <param name="input">The path to the directory to list, and regex to filter files</param>
     /// <param name="connection">The connection details for the server</param>
-    /// <returns></returns>
     public static List<string> ListFiles(ListParams input, ServerConfiguration connection)
     {
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
@@ -25,6 +24,11 @@ public class SFTP
         }
     }
     
+    /// <summary>
+    /// Read a file from an SFTP Server
+    /// </summary>
+    /// <param name="input">The params to identify the file</param>
+    /// <param name="connection">The connection settings</param>
     public static string ReadFile(ReadParams input, ServerConfiguration connection)
     {
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -64,6 +68,11 @@ public class SFTP
         }
     }
     
+    /// <summary>
+    /// Write a file to a SFTP server
+    /// </summary>
+    /// <param name="input">The params to identify the file and contents</param>
+    /// <param name="connection">The connection settings</param>
     public static void WriteFile(WriteParams input, ServerConfiguration connection)
     {
         string path = "";
@@ -106,12 +115,17 @@ public class SFTP
         }
     }
 
+    /// <summary>
+    /// Create a directory on a FTP server
+    /// </summary>
+    /// <param name="input">The params to identify the directory</param>
+    /// <param name="connection">The connection settings</param>
     public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
             client.Connect();
-            if (input.Recursive)
+            if (input.Recursive ?? false)
             {
                 List<string> tPath = new List<string>();
 
@@ -139,7 +153,12 @@ public class SFTP
             client.Disconnect();
         }
     }
-
+    
+    /// <summary>
+    /// Delete a file from an SFTP Server
+    /// </summary>
+    /// <param name="input">The params to identify the file</param>
+    /// <param name="connection">The connection settings</param>
     public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
         string path = "";

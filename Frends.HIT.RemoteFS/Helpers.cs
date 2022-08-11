@@ -11,32 +11,58 @@ namespace Frends.HIT.RemoteFS;
 
 class Helpers
 {
-    public static string GetGuid()
-    {
-        return Guid.NewGuid().ToString();
-    }
-    
+    /// <summary>
+    /// Get an exact match from a list of strings and a search input
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="filter"></param>
+    /// <returns>List of strings</returns>
     public static List<string> GetExactMatch(List<string> input, string filter)
     {
         return input.Where(x => x == filter).ToList();
     }
     
+    /// <summary>
+    /// Get the items that contain a given string in a list of strings
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="filter"></param>
+    /// <returns>List of strings</returns>
     public static List<string> GetContainsMatch(List<string> input, string filter)
     {
         return input.Where(x => x.Contains(filter)).ToList();
     }
     
+    /// <summary>
+    /// Get the items that contain a given string (with wildcards) in a list of strings
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="filter"></param>
+    /// <returns>List of strings</returns>
     public static List<string> GetWildcardMatch(List<string> input, string filter)
     {
         filter = Regex.Escape(filter).Replace("\\*", ".*");
         return GetRegexMatch(input, $"^{filter}$");
     }
     
+    /// <summary>
+    /// Get the items that match a regular expression in a list of strings
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="filter"></param>
+    /// <returns>List of strings</returns>
     public static List<string> GetRegexMatch(List<string> input, string filter)
     {
         return input.Where(x => Regex.IsMatch(x, filter)).ToList();
     }
 
+    /// <summary>
+    /// Filter a list of strings according to a given filter type and filter
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="filter"></param>
+    /// <param name="filterType"></param>
+    /// <returns>List of strings</returns>
     public static List<string> GetMatchingFiles(List<string> input, string filter, FilterTypes filterType)
     {
         switch (filterType)
@@ -54,11 +80,26 @@ class Helpers
         }
     }
 
+    /// <summary>
+    /// Checks if the given string is a valid, non-empty/null string
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
     public static bool IsValidString(string input)
     {
         return !string.IsNullOrEmpty(input) && !string.IsNullOrWhiteSpace(input) && input.Length > 0;
     }
     
+    /// <summary>
+    /// Get a connection string for SMB connections
+    /// </summary>
+    /// <param name="server"></param>
+    /// <param name="username"></param>
+    /// <param name="password"></param>
+    /// <param name="domain"></param>
+    /// <param name="path"></param>
+    /// <param name="file"></param>
+    /// <returns></returns>
     public static string GetSMBConnectionString(
         string server,
         string username = "",
@@ -173,6 +214,12 @@ class Helpers
         );
     }
 
+    /// <summary>
+    /// Finds a method for a given class/typename string and method name string
+    /// </summary>
+    /// <param name="typeName"></param>
+    /// <param name="methodName"></param>
+    /// <returns></returns>
     public static MethodInfo? GetSubclassMethod(string typeName, string methodName)
     {
         var type = Type.GetType(typeName);
@@ -183,6 +230,11 @@ class Helpers
         return type.GetMethod(methodName);
     }
     
+    /// <summary>
+    /// Get the encoding corresponding to FileEncodings enum
+    /// </summary>
+    /// <param name="encoding"></param>
+    /// <returns></returns>
     public static Encoding EncodingFromEnum(FileEncodings encoding) {
         Encoding enc = Encoding.GetEncoding(
             Enum.GetName(
@@ -193,17 +245,15 @@ class Helpers
         );
         return enc;
     }
-
-    public static string EnsureSlash(string input)
-    {
-        if (!input.EndsWith("/"))
-        {
-            return $"{input}/";
-        }
-
-        return input;
-    }
-
+    
+    /// <summary>
+    /// Substitutes parts of a filename with given/generated values
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="sourceFilename"></param>
+    /// <param name="objectGuid"></param>
+    /// <param name="incremental"></param>
+    /// <returns></returns>
     public static string FilenameSubstitutions(
         string input, 
         string sourceFilename = "", 
@@ -242,6 +292,11 @@ class Helpers
         return sb;
     }
 
+    /// <summary>
+    /// Joins a list of strings together with a separator (path)
+    /// </summary>
+    /// <param name="parts"></param>
+    /// <returns></returns>
     public static string JoinPath(params string[] parts)
     {
         var newPath = "";

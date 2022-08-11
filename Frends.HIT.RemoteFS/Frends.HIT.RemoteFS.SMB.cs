@@ -6,6 +6,11 @@ namespace Frends.HIT.RemoteFS;
 
 public class SMB
 {
+    /// <summary>
+    /// List files in a directory on a SMB server
+    /// </summary>
+    /// <param name="input">The path to the directory to list, and regex to filter files</param>
+    /// <param name="connection">The connection details for the server</param>
     public static List<string> ListFiles(ListParams input, ServerConfiguration connection)
     {
         var connectionstring = Helpers.GetSMBConnectionString(
@@ -28,6 +33,11 @@ public class SMB
 
     }
     
+    /// <summary>
+    /// Read a file from an SMB Server
+    /// </summary>
+    /// <param name="input">The params to identify the file</param>
+    /// <param name="connection">The connection settings</param>
     public static string ReadFile(ReadParams input, ServerConfiguration connection)
     {
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -55,6 +65,11 @@ public class SMB
         throw new Exception($"File {input.Path}/{input.File} does not exist");
     }
 
+    /// <summary>
+    /// Write a file to a SMB server
+    /// </summary>
+    /// <param name="input">The params to identify the file and contents</param>
+    /// <param name="connection">The connection settings</param>
     public static void WriteFile(WriteParams input, ServerConfiguration connection)
     {
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -83,7 +98,12 @@ public class SMB
         writeStream.Write(encType.GetBytes(input.Content));
         writeStream.Dispose();
     }
-
+    
+    /// <summary>
+    /// Create a directory on a SMB server
+    /// </summary>
+    /// <param name="input">The params to identify the directory</param>
+    /// <param name="connection">The connection settings</param>
     public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
         var folder = new SmbFile(Helpers.GetSMBConnectionString(
@@ -101,7 +121,7 @@ public class SMB
 
         if (!folder.IsDirectory())
         {
-            if (input.Recursive)
+            if (input.Recursive ?? false)
             {
                 folder.Mkdirs();
             }
@@ -112,6 +132,11 @@ public class SMB
         }
     }
     
+    /// <summary>
+    /// Delete a file from an FTP Server
+    /// </summary>
+    /// <param name="input">The params to identify the file</param>
+    /// <param name="connection">The connection settings</param>
     public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
         var file = new SmbFile(Helpers.GetSMBConnectionString(
