@@ -647,8 +647,10 @@ public class BatchConfigParams
 public class BatchParams
 {
     [DefaultValue("")]
-    [UIHint(nameof(ObjectGuid), "", null)]
+    [UIHint(nameof(ObjectGuid), "", false)]
     private string GuidV { get; set; }
+    
+    
     public string ObjectGuid
     {
         get
@@ -660,6 +662,7 @@ public class BatchParams
             GuidV = value;
         }
     }
+    
     public string SourceServer { get; set; }
     public string SourcePath { get; set; }
     public FilterTypes SourceFilterType { get; set; }
