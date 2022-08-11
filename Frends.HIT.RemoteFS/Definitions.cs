@@ -64,7 +64,13 @@ public enum ConnectionTypes
     /// SFTP, Secure File Transfer Protocol
     /// </summary>
     [Display(Name = "SFTP")]
-    SFTP
+    SFTP,
+    
+    /// <summary>
+    /// Local Storage (On agent server/in agent pod)
+    /// </summary>
+    [Display(Name = "Local Storage")]
+    LocalStorage
 }
 
 /// <summary>
@@ -94,7 +100,13 @@ public enum ConfigurationType
     /// Manual Config - SFTP
     /// </summary>
     [Display(Name = "SFTP")]
-    SFTP
+    SFTP,
+    
+    /// <summary>
+    /// Manual Config - Local Storage
+    /// </summary>
+    [Display(Name = "Local Storage")]
+    LocalStorage
 }
 
 /// <summary>
@@ -151,6 +163,7 @@ public class ServerConfiguration
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
     [Display(Name = "Hostname/IP Address")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP)]
     public string Address { get; set; }
     
     /// <summary>
@@ -165,6 +178,7 @@ public class ServerConfiguration
     /// The username used for connecting to the remote server
     /// </summary>
     [Display(Name = "Username")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP)]
     public string Username { get; set; }
 
     /// <summary>
@@ -173,6 +187,7 @@ public class ServerConfiguration
     [DefaultValue("")]
     [PasswordPropertyText]
     [Display(Name = "Password")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP)]
     public string Password { get; set; }
 
     /// <summary>
