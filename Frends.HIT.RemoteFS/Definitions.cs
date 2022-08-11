@@ -192,7 +192,7 @@ public class ServerConfiguration
     public string PrivateKeyPassword { get; set; }
     
     /// <summary>
-    /// (optional) The fingerprint of the SFTP server for verification
+    /// (optional) The fingerprint of the SFTP server for verification (Empty for no verification)
     /// </summary>
     [DefaultValue("")]
     [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP)]

@@ -17,6 +17,15 @@ public class SFTP
     {
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
+            try
+            {
+                Helpers.VerifyFingerprint(client, connection.Fingerprint);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
+            }
+            
             client.Connect();
             var listing = client.ListDirectory(input.Path);
             client.Disconnect();
@@ -55,6 +64,15 @@ public class SFTP
         {
             using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
             {
+                try
+                {
+                    Helpers.VerifyFingerprint(client, connection.Fingerprint);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
+                }
+                
                 client.Connect();
                 var file = client.ReadAllText(path, encType);
                 client.Disconnect();
@@ -97,6 +115,15 @@ public class SFTP
 
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
+            try
+            {
+                Helpers.VerifyFingerprint(client, connection.Fingerprint);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
+            }
+            
             // Connect to the server
             client.Connect();
             
@@ -116,7 +143,7 @@ public class SFTP
     }
 
     /// <summary>
-    /// Create a directory on a FTP server
+    /// Create a directory on a SFTP server
     /// </summary>
     /// <param name="input">The params to identify the directory</param>
     /// <param name="connection">The connection settings</param>
@@ -124,6 +151,15 @@ public class SFTP
     {
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
+            try
+            {
+                Helpers.VerifyFingerprint(client, connection.Fingerprint);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
+            }
+            
             client.Connect();
             if (input.Recursive ?? false)
             {
@@ -180,6 +216,16 @@ public class SFTP
         }
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
+            try
+            {
+                Helpers.VerifyFingerprint(client, connection.Fingerprint);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
+            }
+            
+            
             client.Connect();
             client.Delete(path);
             client.Disconnect();

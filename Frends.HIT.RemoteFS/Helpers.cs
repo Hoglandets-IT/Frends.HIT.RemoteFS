@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Newtonsoft.Json;
 using Renci.SshNet;
+using Renci.SshNet.Common;
 using SharpCifs.Util.Sharpen;
 
 namespace Frends.HIT.RemoteFS;
@@ -213,6 +214,34 @@ class Helpers
             authenticationMethods: authMethods.ToArray()
         );
     }
+
+    /// <summary>
+    /// Verifies that the server fingerprint matches the expected print
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="expectedFp"></param>
+    /// <returns></returns>
+    public static void VerifyFingerprint(SftpClient client, string expectedFp)
+    {
+        string actual = "";
+        if (Helpers.IsValidString(expectedFp))
+        {
+            try
+            {
+                client.HostKeyReceived += delegate(object sender, HostKeyEventArgs e)
+                {
+                    var b = expectedFp.Split(':').Select(x => Convert.ToByte(x, 16)).ToArray();
+                    actual = BitConverter.ToString(e.FingerPrint).Replace("-", ":");
+                    e.CanTrust = e.FingerPrint.SequenceEqual(b);
+                };
+            }
+            catch (SshConnectionException ex)
+            {
+                throw new Exception($"Failed to verify fingerprint (expected {expectedFp}, got {actual})", ex);
+            }    
+        }
+    }
+
 
     /// <summary>
     /// Finds a method for a given class/typename string and method name string
