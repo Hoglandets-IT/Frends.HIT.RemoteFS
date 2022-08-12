@@ -245,3 +245,96 @@ The result of a single batch item
 |Success|bool|true|Whether the file was successfully transferred|
 |Error|string|The error message if the file was not successfully transferred|
 |Timestamp|datetime|2018-01-01T00:00:00Z|The timestamp when the file was transferred|
+
+
+## Development
+If you have an idea, an enhancement or want to add another remote module feel free to submit a pull request.
+
+### Adding modules for remote types
+There are 4 things that need to be edited to add another type of remote:
+
+#### Create a file
+Create a new file named Frends.HIT.RemoteFS.[RemoteType].cs with the following structure.
+Keep in mind that for the functions where input specifies "Path" and "File", the following can be assumed:
+
+- The entire path can be in the "Path" parameter, with "File" left empty
+- The path can be split between the "Path" and "File" parameters
+- Ensure that slashes are added before/after the path/file parameters to join the path correctly
+- Ensure that the path doesn't start with a / if the parameter doesn't specify it, and vice versa
+
+Use the Path.Join function to create a full path to the file.
+
+```cs
+using System.IO;
+
+namespace Frends.HIT.RemoteFS;
+
+public class [RemoteType]
+{
+    /// <summary>
+    /// List files in a directory
+    /// </summary>
+    /// <param name="input">The path to the directory to list, and regex to filter files</param>
+    /// <param name="connection">The connection details for the server</param>
+    public static List<string> ListFiles(ListParams input, ServerConfiguration connection)
+    {
+        // Insert code to list files in a directory
+        // Should return an unfiltered list of filenames (not full paths)
+    }
+    
+    /// <summary>
+    /// Read a file
+    /// </summary>
+    /// <param name="input">The params to identify the file</param>
+    /// <param name="connection">The connection settings</param>
+    public static string ReadFile(ReadParams input, ServerConfiguration connection)
+    {
+        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
+        string actualPath = Path.Join(input.Path, input.File);
+
+        // Insert code to get the content from a file with the encoding in encType
+        // Should return a string with the file contents
+    }
+
+    /// <summary>
+    /// Write a file
+    /// </summary>
+    /// <param name="input">The params to identify the file and contents</param>
+    /// <param name="connection">The connection settings</param>
+    public static void WriteFile(WriteParams input, ServerConfiguration connection)
+    {
+        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
+        string actualPath = Path.Join(input.Path, input.File);
+
+        // Insert code to write to a file with the encoding in encType
+        // This code should make a check that input.Overwrite is true before overwriting any file
+        // No return on success, exception on failure
+    }
+    
+    /// <summary>
+    /// Create a directory
+    /// </summary>
+    /// <param name="input">The params to identify the directory</param>
+    /// <param name="connection">The connection settings</param>
+    public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
+    {
+        // Insert code to create a directory at the given path
+        // Should honor the input.Recursive option on whether to create all dirs in a path
+        // Should check if a file exists at the path, and throw an exception if it does
+    }
+    
+    /// <summary>
+    /// Delete a file
+    /// </summary>
+    /// <param name="input">The params to identify the file</param>
+    /// <param name="connection">The connection settings</param>
+    public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
+    {
+        string actualPath = Path.Join(input.Path, input.File);
+
+        // Insert code to delete a file (not dir)
+    }
+}
+
+
+```
