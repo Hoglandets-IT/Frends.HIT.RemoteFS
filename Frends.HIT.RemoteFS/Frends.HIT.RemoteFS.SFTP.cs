@@ -40,25 +40,8 @@ public class SFTP
     /// <param name="connection">The connection settings</param>
     public static string ReadFile(ReadParams input, ServerConfiguration connection)
     {
+        string path = Helpers.JoinPath("/", input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
-
-        string path = "";
-
-        if (string.IsNullOrEmpty(input.File))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
 
         try
         {
@@ -93,24 +76,7 @@ public class SFTP
     /// <param name="connection">The connection settings</param>
     public static void WriteFile(WriteParams input, ServerConfiguration connection)
     {
-        string path = "";
-
-        if (string.IsNullOrEmpty(input.File))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
-
+        string path = Helpers.JoinPath("/", input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
 
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
@@ -197,23 +163,8 @@ public class SFTP
     /// <param name="connection">The connection settings</param>
     public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
-        string path = "";
+        string path = Helpers.JoinPath("/", input.Path, input.File);
 
-        if (string.IsNullOrEmpty(input.File))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
             try

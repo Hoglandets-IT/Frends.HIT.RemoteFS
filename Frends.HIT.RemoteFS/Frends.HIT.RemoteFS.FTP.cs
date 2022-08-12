@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.IO;
 using FluentFTP;
 
 namespace Frends.HIT.RemoteFS;
@@ -14,15 +15,7 @@ public class FTP
     {
         var result = new List<string>();
 
-        Int32 port = 21;
-        string[] split = connection.Address.Split(':');
-            
-        string host = split[0];
-        if (split.Length > 1) {
-            port = Int32.Parse(split[1]);
-        }
-
-        using (FtpClient client = new FtpClient(host, port, connection.Username, connection.Password))
+        using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
             client.AutoConnect();
             var listing = client.GetListing(input.Path, FtpListOption.Modify);
@@ -47,35 +40,10 @@ public class FTP
     /// <param name="connection">The connection settings</param>
     public static string ReadFile(ReadParams input, ServerConfiguration connection)
     {
-        Int32 port = 21;
-        string[] split = connection.Address.Split(':');
-            
-        string host = split[0];
-        if (split.Length > 1) {
-            port = Int32.Parse(split[1]);
-        }
-
-        string path = "";
-
-        if (string.IsNullOrEmpty(input.File.ToString()) || string.IsNullOrWhiteSpace(input.File.ToString()))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
-        
+        string path = Helpers.JoinPath("/", input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
-            
-        using (FtpClient client = new FtpClient(host, port, connection.Username, connection.Password))
+        
+        using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
             try
             {
@@ -90,7 +58,7 @@ public class FTP
             }
             catch (Exception e)
             {
-                throw new Exception($"Error reading path {path} from server {host}:{port}", e);
+                throw new Exception($"Error reading path {path} from server {connection.Address}", e);
             }
         }
     }
@@ -102,35 +70,10 @@ public class FTP
     /// <param name="connection">The connection settings</param>
     public static void WriteFile(WriteParams input, ServerConfiguration connection)
     {
-        Int32 port = 21;
-        string[] split = connection.Address.Split(':');
-            
-        string host = split[0];
-        if (split.Length > 1) {
-            port = Int32.Parse(split[1]);
-        }
-
-        string path = "";
-
-        if (string.IsNullOrEmpty(input.File))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
-
+        string path = Helpers.JoinPath("/", input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
 
-        using (FtpClient client = new FtpClient(host, port, connection.Username, connection.Password))
+        using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
             client.AutoConnect();
            
@@ -144,7 +87,7 @@ public class FTP
             var file = client.Upload(memStream, path, overwrite, false);
             if (file == FtpStatus.Failed || file == FtpStatus.Skipped)
             {
-                throw new Exception($"Error writing to path {path} to server {host}:{port} (File exists or directory does not exist)");
+                throw new Exception($"Error writing to path {path} on server {connection.Address} (File exists or directory does not exist)");
             }
 
             memStream.Dispose();
@@ -159,15 +102,7 @@ public class FTP
     /// <param name="connection">The connection settings</param>
     public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
-        Int32 port = 21;
-        string[] split = connection.Address.Split(':');
-            
-        string host = split[0];
-        if (split.Length > 1) {
-            port = Int32.Parse(split[1]);
-        }
-        
-        using (FtpClient client = new FtpClient(host, port, connection.Username, connection.Password))
+        using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
             client.AutoConnect();
             client.CreateDirectory(input.Path, input.Recursive ?? false);
@@ -182,33 +117,9 @@ public class FTP
     /// <param name="connection">The connection settings</param>
     public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
-        Int32 port = 21;
-        string[] split = connection.Address.Split(':');
-            
-        string host = split[0];
-        if (split.Length > 1) {
-            port = Int32.Parse(split[1]);
-        }
+        string path = Helpers.JoinPath("/", input.Path, input.File);
 
-        string path = "";
-
-        if (string.IsNullOrEmpty(input.File))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
-        
-        using (FtpClient client = new FtpClient(host, port, connection.Username, connection.Password))
+        using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
             client.AutoConnect();
             client.DeleteFile(path);

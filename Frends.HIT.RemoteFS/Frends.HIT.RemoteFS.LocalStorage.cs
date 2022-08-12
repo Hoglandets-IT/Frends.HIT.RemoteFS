@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Frends.HIT.RemoteFS;
 
@@ -30,26 +31,9 @@ public class LocalStorage
     /// <param name="connection">The connection settings</param>
     public static string ReadFile(ReadParams input, ServerConfiguration connection)
     {
+        string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
 
-        string path = "";
-        
-        if (string.IsNullOrEmpty(input.File) || string.IsNullOrWhiteSpace(input.File))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
-        
         try
         {
 
@@ -71,26 +55,9 @@ public class LocalStorage
     /// <param name="connection">The connection settings</param>
     public static void WriteFile(WriteParams input, ServerConfiguration connection)
     {
+        string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
         
-        string path = "";
-        
-        if (string.IsNullOrEmpty(input.File.ToString()) || string.IsNullOrWhiteSpace(input.File.ToString()))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
-
         try
         {
             // Check if file exists
@@ -137,22 +104,7 @@ public class LocalStorage
     /// <param name="connection">The connection settings</param>
     public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
-        string path = "";
-        if (string.IsNullOrEmpty(input.File.ToString()) || string.IsNullOrWhiteSpace(input.File.ToString()))
-        {
-            path = input.Path;
-        }
-        else
-        {
-            if (input.Path.EndsWith("/"))
-            {
-                path = input.Path + input.File;
-            }
-            else
-            {
-                path = string.Join("/", input.Path, input.File);
-            }
-        }
+        string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
 
         if (!Directory.Exists(path))
         {

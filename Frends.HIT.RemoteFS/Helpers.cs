@@ -1,12 +1,9 @@
 ﻿using System.Text.RegularExpressions;
-using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
-using Newtonsoft.Json;
+using FluentFTP;
 using Renci.SshNet;
 using Renci.SshNet.Common;
-using SharpCifs.Util.Sharpen;
 
 namespace Frends.HIT.RemoteFS;
 
@@ -101,14 +98,7 @@ class Helpers
     /// <param name="path"></param>
     /// <param name="file"></param>
     /// <returns></returns>
-    public static string GetSMBConnectionString(
-        string server,
-        string username = "",
-        string password = "",
-        string domain = "",
-        string path = "",
-        string file = ""
-    )
+    public static string GetSMBConnectionString(ServerConfiguration connection, string path, string file)
     {
         
         var sb = new StringBuilder("smb://");
@@ -116,42 +106,33 @@ class Helpers
         path = path.Replace("\\", "/");
         file = file.Replace("\\", "/");
         
-        if (IsValidString(domain))
+        if (IsValidString(connection.Domain))
         {
-            sb.Append($"{domain};");
+            sb.Append($"{connection.Domain};");
         }
 
-        if (IsValidString(username))
+        if (IsValidString(connection.Username))
         {
-            sb.Append($"{username}");
+            sb.Append($"{connection.Username}");
             
-            if (IsValidString(password))
+            if (IsValidString(connection.Password))
             {
-                sb.Append($":{password}");
+                sb.Append($":{connection.Password}");
             }
             
             sb.Append("@");
         }
         
-        sb.Append($"{server}");
+        sb.Append(connection.Address);
 
+        string actualPath = JoinPath("/", path, file); 
+                
         if (!path.StartsWith("/"))
         {
             sb.Append("/");
         }
         
-        sb.Append(path);
-
-        if (!path.EndsWith("/") && !file.StartsWith("/"))
-        {
-            sb.Append("/");
-        }
-        
-        if (IsValidString(file))
-        {
-            sb.Append(file);
-        }
-        
+        sb.Append(actualPath);
         return sb.ToString();
     }
     
@@ -213,6 +194,19 @@ class Helpers
             username: input.Username,
             authenticationMethods: authMethods.ToArray()
         );
+    }
+
+    public static FtpClient GetFTPConnection(ServerConfiguration input)
+    {
+        Int32 port = 21;
+        string[] split = input.Address.Split(':');
+            
+        string host = split[0];
+        if (split.Length > 1) {
+            port = Int32.Parse(split[1]);
+        }
+
+        return new FtpClient(host, port, input.Username, input.Password);
     }
 
     /// <summary>
@@ -321,35 +315,32 @@ class Helpers
         return sb;
     }
 
+    public static string OSDirSeparator = Path.DirectorySeparatorChar.ToString();
+    
     /// <summary>
     /// Joins a list of strings together with a separator (path)
     /// </summary>
+    /// <param name="separator"></param>
     /// <param name="parts"></param>
     /// <returns></returns>
-    public static string JoinPath(params string[] parts)
+    public static string JoinPath(string separator, params string[] parts)
     {
-        var newPath = "";
-        if (parts[0].StartsWith("/"))
+        var cleanParts = new List<string>();
+        foreach (var part in parts)
         {
-            newPath += "/";
+            if (IsValidString(part))
+            {
+                cleanParts.Add(part);
+            }
         }
 
-        foreach (string part in parts)
+        string retnString = string.Join(separator, cleanParts);
+        
+        while (retnString.Contains(separator+separator))
         {
-            if (newPath.EndsWith('/') && part.StartsWith('/'))
-            {
-                newPath += part.Substring(1);
-            }
-            else if (!newPath.EndsWith('/') && !part.StartsWith('/'))
-            {
-                newPath += "/" + part;
-                
-            }
-            else
-            {
-                newPath += part;
-            }
+            retnString = retnString.Replace(separator + separator, separator);
         }
-        return newPath;
+        
+        return retnString;
     }
 }

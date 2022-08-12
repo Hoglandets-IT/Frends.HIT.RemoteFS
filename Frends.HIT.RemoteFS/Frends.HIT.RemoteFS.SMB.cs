@@ -13,14 +13,8 @@ public class SMB
     /// <param name="connection">The connection details for the server</param>
     public static List<string> ListFiles(ListParams input, ServerConfiguration connection)
     {
-        var connectionstring = Helpers.GetSMBConnectionString(
-            server: connection.Address,
-            username: connection.Username,
-            password: connection.Password,
-            domain: connection.Domain,
-            path: input.Path,
-            file: ""
-        );
+        var connectionstring = Helpers.GetSMBConnectionString(connection, input.Path, "");
+        
         try
         {
             var folder = new SmbFile(connectionstring);
@@ -42,14 +36,7 @@ public class SMB
     {
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
         
-        var file = new SmbFile(Helpers.GetSMBConnectionString(
-            server: connection.Address,
-            username: connection.Username,
-            password: connection.Password,
-            domain: connection.Domain,
-            path: input.Path,
-            file: input.File
-        ));
+        var file = new SmbFile(Helpers.GetSMBConnectionString(connection, input.Path, input.File));
 
         if (file.Exists())
         {
@@ -74,14 +61,7 @@ public class SMB
     {
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
         
-        var file = new SmbFile(Helpers.GetSMBConnectionString(
-            server: connection.Address,
-            username: connection.Username,
-            password: connection.Password,
-            domain: connection.Domain,
-            path: input.Path,
-            file: input.File
-        ));
+        var file = new SmbFile(Helpers.GetSMBConnectionString(connection, input.Path, input.File));
 
         if (file.Exists())
         {
@@ -106,13 +86,7 @@ public class SMB
     /// <param name="connection">The connection settings</param>
     public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
-        var folder = new SmbFile(Helpers.GetSMBConnectionString(
-            server: connection.Address,
-            username: connection.Username,
-            password: connection.Password,
-            domain: connection.Domain,
-            path: input.Path
-        ));
+        var folder = new SmbFile(Helpers.GetSMBConnectionString(connection, input.Path, ""));
 
         if (folder.IsFile())
         {
@@ -139,15 +113,6 @@ public class SMB
     /// <param name="connection">The connection settings</param>
     public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
-        var file = new SmbFile(Helpers.GetSMBConnectionString(
-            server: connection.Address,
-            username: connection.Username,
-            password: connection.Password,
-            domain: connection.Domain,
-            path: input.Path,
-            file: input.File
-        ));
-
-        file.Delete();
+        new SmbFile(Helpers.GetSMBConnectionString(connection, input.Path, input.File)).Delete();
     }
 }
