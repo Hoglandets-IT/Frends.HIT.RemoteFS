@@ -335,8 +335,8 @@ public class Main
                 
                 results.Add(new BatchResult(
                     objectGuid: param.ObjectGuid,
-                    sourceFile: Helpers.JoinPath($"{sourceServer.Username}{sourceServer.Address}", param.SourcePath, file),
-                    destinationFile: Helpers.JoinPath($"{destinationServer.Username}{destinationServer.Address}", param.DestinationPath, newFilename),
+                    sourceFile: Helpers.JoinPath("/", $"{sourceServer.Username}{sourceServer.Address}", param.SourcePath, file),
+                    destinationFile: Helpers.JoinPath("/", $"{destinationServer.Username}{destinationServer.Address}", param.DestinationPath, newFilename),
                     success: errorStr == "",
                     message: errorStr,
                     timestamp: DateTime.Now
