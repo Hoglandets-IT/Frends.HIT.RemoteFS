@@ -15,6 +15,11 @@ public class SMB
     {
         var connectionstring = Helpers.GetSMBConnectionString(connection, input.Path, "");
         
+        if (!connectionstring.EndsWith("/"))
+        {
+            connectionstring += "/";
+        }
+        
         try
         {
             var folder = new SmbFile(connectionstring);
