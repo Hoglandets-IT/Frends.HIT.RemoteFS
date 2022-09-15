@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using Newtonsoft.Json;
 using Renci.SshNet;
+using System.Threading.Tasks;
 
 namespace Frends.HIT.RemoteFS;
 
@@ -20,7 +21,7 @@ namespace Frends.HIT.RemoteFS;
 public class Main
 {
     [DisplayName("List Files")]
-    public static ListResult ListFiles([PropertyTab] ListParams input, [PropertyTab] ServerParams connection)
+    public static async ListResult Task<ListFiles>([PropertyTab] ListParams input, [PropertyTab] ServerParams connection)
     {
         var serverConfiguration = connection.GetServerConfiguration();
         var listMethod = serverConfiguration.GetActionClass("ListFiles");
