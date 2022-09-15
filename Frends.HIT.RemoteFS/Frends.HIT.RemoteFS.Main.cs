@@ -21,7 +21,7 @@ namespace Frends.HIT.RemoteFS;
 public class Main
 {
     [DisplayName("List Files")]
-    public static async ListResult Task<ListFiles>([PropertyTab] ListParams input, [PropertyTab] ServerParams connection)
+    public static async Task<ListResult> ListFiles([PropertyTab] ListParams input, [PropertyTab] ServerParams connection)
     {
         var serverConfiguration = connection.GetServerConfiguration();
         var listMethod = serverConfiguration.GetActionClass("ListFiles");
@@ -31,7 +31,8 @@ public class Main
             throw new Exception("No ListFiles action found in server configuration");
         }
         
-        var files = (List<string>)listMethod.Invoke(null, new object[] { input, serverConfiguration });
+        // var files = (List<string>)listMethod.Invoke(null, new object[] { input, serverConfiguration });
+        List<string> files = await SMB.ListFiles(input, serverConfiguration);
         
         files = Helpers.GetMatchingFiles(files, input.Pattern, input.Filter);
 
