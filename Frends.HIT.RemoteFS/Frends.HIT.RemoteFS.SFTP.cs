@@ -2,7 +2,6 @@
 using Renci.SshNet;
 using Renci.SshNet.Common;
 using Renci.SshNet.Sftp;
-using SharpCifs.Util.Sharpen;
 
 namespace Frends.HIT.RemoteFS;
 

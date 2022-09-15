@@ -1,0 +1,5 @@
+image: gitpod/workspace-dotnet
+tasks:
+  - command: |
+        cd Frends.HIT.RemoteFS
+        dotnet restore
