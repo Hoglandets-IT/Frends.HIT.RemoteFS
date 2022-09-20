@@ -6,12 +6,36 @@ namespace Frends.HIT.RemoteFS;
 
 public class LocalStorage
 {
+    public static async Task<dynamic> DoMethod(string action, object[] parameters)
+    {
+        switch (action)
+        {
+            case "ListFiles":
+                return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "ReadFile":
+                return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "WriteFile":
+                await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "DeleteFile":
+                await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "CreateDir":
+                await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+        }
+
+        return true;
+    }
+    
     /// <summary>
     /// List files in a directory on the local filesystem
     /// </summary>
     /// <param name="input">The path to the directory to list, and regex to filter files</param>
     /// <param name="connection">The connection details for the server</param>
-    public static List<string> ListFiles(ListParams input, ServerConfiguration connection)
+    public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
         try
         {
@@ -29,7 +53,7 @@ public class LocalStorage
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static string ReadFile(ReadParams input, ServerConfiguration connection)
+    public static async Task<string> ReadFile(ReadParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -44,8 +68,6 @@ public class LocalStorage
         {
             throw new Exception("Error reading file at " + input.Path, e);
         }
-        
-       
     }
 
     /// <summary>
@@ -53,7 +75,7 @@ public class LocalStorage
     /// </summary>
     /// <param name="input">The params to identify the file and contents</param>
     /// <param name="connection">The connection settings</param>
-    public static void WriteFile(WriteParams input, ServerConfiguration connection)
+    public static async Task<bool> WriteFile(WriteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -77,6 +99,8 @@ public class LocalStorage
         {
             throw new Exception("Error writing file at " + path, e);
         }
+
+        return true;
     }
     
     /// <summary>
@@ -84,7 +108,7 @@ public class LocalStorage
     /// </summary>
     /// <param name="input">The params to identify the directory</param>
     /// <param name="connection">The connection settings</param>
-    public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
+    public static async Task<bool> CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
         if (File.Exists(input.Path))
         {
@@ -95,6 +119,8 @@ public class LocalStorage
         {
             Directory.CreateDirectory(input.Path);
         }
+
+        return true;
     }
     
     /// <summary>
@@ -102,7 +128,7 @@ public class LocalStorage
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
+    public static async Task<bool> DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
 
@@ -110,5 +136,7 @@ public class LocalStorage
         {
             throw new Exception("File does not exist at " + path + ", is a directory");
         }
+
+        return true;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Text;
+using EzSmb.Params;
 using FluentFTP;
 using Renci.SshNet;
 using Renci.SshNet.Common;
@@ -89,51 +90,21 @@ class Helpers
     }
     
     /// <summary>
-    /// Get a connection string for SMB connections
+    /// Get SMB Connection params
     /// </summary>
-    /// <param name="server"></param>
-    /// <param name="username"></param>
-    /// <param name="password"></param>
-    /// <param name="domain"></param>
-    /// <param name="path"></param>
-    /// <param name="file"></param>
-    /// <returns></returns>
-    public static string GetSMBConnectionString(ServerConfiguration connection, string path, string file)
+    public static ParamSet GetSMBConnectionParams(ServerConfiguration connection)
     {
-        
-        var sb = new StringBuilder("smb://");
-
-        path = path.Replace("\\", "/");
-        file = file.Replace("\\", "/");
-        
-        if (IsValidString(connection.Domain))
+        var par = new ParamSet()
         {
-            sb.Append($"{connection.Domain};");
+            UserName=connection.Username,
+            Password=connection.Password
+        };
+        if (connection.Domain != null && connection.Domain != "")
+        {
+            par.DomainName = connection.Domain;
         }
 
-        if (IsValidString(connection.Username))
-        {
-            sb.Append($"{connection.Username}");
-            
-            if (IsValidString(connection.Password))
-            {
-                sb.Append($":{connection.Password}");
-            }
-            
-            sb.Append("@");
-        }
-        
-        sb.Append(connection.Address);
-
-        string actualPath = JoinPath("/", path, file); 
-                
-        if (!path.StartsWith("/"))
-        {
-            sb.Append("/");
-        }
-        
-        sb.Append(actualPath);
-        return sb.ToString();
+        return par;
     }
     
     /// <summary>
@@ -342,5 +313,19 @@ class Helpers
         }
         
         return retnString;
+    }
+
+    public static string[] JoinPath(string separator, bool separateLastPart, params string[] parts)
+    {
+        string joinedPath = JoinPath(separator, parts);
+        if (separateLastPart == true)
+        {
+            var split = joinedPath.Split(separator).ToList();
+            var path = split.GetRange(0, split.Count - 1);
+            var file = split.GetRange(split.Count - 1, 1);
+            return new string[] {string.Join(separator, path), file[0]};
+        }
+
+        return new string[] { joinedPath };
     }
 }

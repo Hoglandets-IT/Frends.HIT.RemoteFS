@@ -23,19 +23,29 @@ public class Main
     [DisplayName("List Files")]
     public static async Task<ListResult> ListFiles([PropertyTab] ListParams input, [PropertyTab] ServerParams connection)
     {
+        List<string> files = new List<string>();
         var serverConfiguration = connection.GetServerConfiguration();
-        var listMethod = serverConfiguration.GetActionClass("ListFiles");
         
-        if (listMethod == null)
+        switch (serverConfiguration.ConnectionType)
         {
-            throw new Exception("No ListFiles action found in server configuration");
+            case ConnectionTypes.SMB:
+                files = await SMB.ListFiles(input, serverConfiguration);
+                break;
+            case ConnectionTypes.SFTP:
+                files = await SFTP.ListFiles(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.LocalStorage:
+                files = await LocalStorage.ListFiles(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.FTP:
+                files = await FTP.ListFiles(input, serverConfiguration);
+                break;
         }
         
-        // var files = (List<string>)listMethod.Invoke(null, new object[] { input, serverConfiguration });
-        List<string> files = await SMB.ListFiles(input, serverConfiguration);
-        
         files = Helpers.GetMatchingFiles(files, input.Pattern, input.Filter);
-
+        
         return new ListResult(
             files.Count(),
             files
@@ -43,90 +53,130 @@ public class Main
     }
 
     [DisplayName("Read File")]
-    public static ReadResult ReadFile([PropertyTab] ReadParams input, [PropertyTab] ServerParams connection)
+    public static async Task<ReadResult> ReadFile([PropertyTab] ReadParams input, [PropertyTab] ServerParams connection)
     {
         var serverConfiguration = connection.GetServerConfiguration();
-        var readMethod = serverConfiguration.GetActionClass("ReadFile");
+        string content = null;
         
-        if (readMethod == null)
+        switch (serverConfiguration.ConnectionType)
         {
-            throw new Exception("No ReadFile action found in current class");
+            case ConnectionTypes.SMB:
+                content = await SMB.ReadFile(input, serverConfiguration);
+                break;
+            case ConnectionTypes.SFTP:
+                content = await SFTP.ReadFile(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.LocalStorage:
+                content = await LocalStorage.ReadFile(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.FTP:
+                content = await FTP.ReadFile(input, serverConfiguration);
+                break;
         }
         
-        var result = (string)readMethod.Invoke(null, new object[] { input, serverConfiguration });
-        
         return new ReadResult(
-            result,
+            content=content,
             string.Join("/", new string[] { input.Path, input.File }),
             input.Encoding
         );
     }
-    
 
     [DisplayName("Write File")]
-    public static WriteResult WriteFile([PropertyTab] WriteParams input, [PropertyTab] ServerParams connection)
+    public static async Task<WriteResult> WriteFile([PropertyTab] WriteParams input, [PropertyTab] ServerParams connection)
     {
         var serverConfiguration = connection.GetServerConfiguration();
-        var writeMethod = serverConfiguration.GetActionClass("WriteFile");
         
-        if (writeMethod == null)
+        switch (serverConfiguration.ConnectionType)
         {
-            throw new Exception("No ListFiles action found in current class");
+            case ConnectionTypes.SMB:
+                await SMB.WriteFile(input, serverConfiguration);
+                break;
+            case ConnectionTypes.SFTP:
+                await SFTP.WriteFile(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.LocalStorage:
+                await LocalStorage.WriteFile(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.FTP:
+                await FTP.WriteFile(input, serverConfiguration);
+                break;
         }
-        
-        writeMethod.Invoke(null, new object[] { input, serverConfiguration });
         
         return new WriteResult(true, string.Join("/", input.Path, input.File), input.Encoding);
     }
 
     [DisplayName("Create Directory")]
-    public static CreateDirResult CreateDir([PropertyTab] CreateDirParams input, [PropertyTab] ServerParams connection)
+    public static async Task<CreateDirResult> CreateDir([PropertyTab] CreateDirParams input, [PropertyTab] ServerParams connection)
     {
         var serverConfiguration = connection.GetServerConfiguration();
-        var createDirMethod = serverConfiguration.GetActionClass("CreateDir");
         
-        if (createDirMethod == null)
+        switch (serverConfiguration.ConnectionType)
         {
-            throw new Exception("No CreateDir action found in current class");
+            case ConnectionTypes.SMB:
+                await SMB.CreateDir(input, serverConfiguration);
+                break;
+            case ConnectionTypes.SFTP:
+                await SFTP.CreateDir(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.LocalStorage:
+                await LocalStorage.CreateDir(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.FTP:
+                await FTP.CreateDir(input, serverConfiguration);
+                break;
         }
-        
-        createDirMethod.Invoke(null, new object[] { input, serverConfiguration });
         
         return new CreateDirResult(true);
     }
 
     [DisplayName("Delete File")]
-    public static DeleteResult DeleteFile([PropertyTab] DeleteParams input, [PropertyTab] ServerParams connection)
+    public static async Task<DeleteResult> DeleteFile([PropertyTab] DeleteParams input, [PropertyTab] ServerParams connection)
     {
         var serverConfiguration = connection.GetServerConfiguration();
-        var deleteMethod = serverConfiguration.GetActionClass("DeleteFile");
         
-        if (deleteMethod == null)
+        switch (serverConfiguration.ConnectionType)
         {
-            throw new Exception("No ListFiles action found in current class");
+            case ConnectionTypes.SMB:
+                await SMB.DeleteFile(input, serverConfiguration);
+                break;
+            case ConnectionTypes.SFTP:
+                await SFTP.DeleteFile(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.LocalStorage:
+                await LocalStorage.DeleteFile(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.FTP:
+                await FTP.DeleteFile(input, serverConfiguration);
+                break;
         }
-        
-        deleteMethod.Invoke(null, new object[] { input, serverConfiguration });
         
         return new DeleteResult(true, string.Join("/", input.Path, input.File));
     }
 
     [DisplayName("Copy File")]
-    public static CopyResult CopyFile(
+    public static async Task<CopyResult> CopyFile(
         [PropertyTab] ReadParams sourceInput,
         [PropertyTab] ServerParams sourceConnection,
         [PropertyTab] CopyDestParams destinationInput,
         [PropertyTab] ServerParams destinationConnection
     )
     {
-        var file = ReadFile(sourceInput, sourceConnection);
-        WriteFile(destinationInput.GetWriteParams(file.Content), destinationConnection);
+        var file = await ReadFile(sourceInput, sourceConnection);
+        await WriteFile(destinationInput.GetWriteParams(file.Content), destinationConnection);
 
         return new CopyResult(true);
     }
 
     [DisplayName("Batch Transfer")]
-    public static BatchResults BatchTransfer(
+    public static async Task<BatchResults> BatchTransfer(
         [PropertyTab] BatchConfigParams config,
         [PropertyTab] BatchParams[] input
     )
@@ -153,7 +203,7 @@ public class Main
                         configPath += "/";
                     }
                     
-                    CreateDir(
+                    await CreateDir(
                         new CreateDirParams().Create(
                             path: configPath,
                             recursive: true
@@ -167,26 +217,29 @@ public class Main
                 }
                 
                 
-                var isFile = ListFiles(
+                var isFile = await ListFiles(
                     new ListParams().Create(
                       path: config.ConfigPath,
                       filter: FilterTypes.Exact,
-                      pattern: $"{param.ObjectGuid}.json"
+                      pattern: $"{param.ObjectGuid}.json",
+                      listtype: ObjectTypes.Files
                     ),
                     configServer
                 );
 
                 if (isFile.Count != 0)
                 {
+                    var inc = await ReadFile(
+                        new ReadParams().Create(
+                            path: config.ConfigPath,
+                            file: $"{param.ObjectGuid}.json",
+                            FileEncodings.UTF_8
+                        ),
+                        configServer
+                    );
                     incremental = Int32.Parse(
-                        ReadFile(
-                            new ReadParams().Create(
-                                path: config.ConfigPath,
-                                file: $"{param.ObjectGuid}.json",
-                                FileEncodings.UTF_8
-                            ),
-                            configServer
-                        ).Content);
+                        inc.Content
+                    );
                 }
             }
 
@@ -200,7 +253,7 @@ public class Main
 
                 backupPath += param.ObjectGuid;
 
-                CreateDir(
+                await CreateDir(
                     new CreateDirParams().Create(
                         path: backupPath,
                         recursive: true
@@ -209,11 +262,12 @@ public class Main
                 );
             }
 
-            var fileList = ListFiles(
+            var fileList = await ListFiles(
                 new ListParams().Create(
                     path: param.SourcePath,
                     filter: param.SourceFilterType,
-                    pattern: param.SourceFilterPattern
+                    pattern: param.SourceFilterPattern,
+                    listtype: ObjectTypes.Files
                 ),
                 sourceServer
             );
@@ -225,14 +279,15 @@ public class Main
 
                 try
                 {
-                    fileContents = ReadFile(
+                    var inc = await ReadFile(
                         new ReadParams().Create(
                             path: param.SourcePath,
                             file: file,
                             encoding: param.SourceEncoding
                         ),
                         sourceServer
-                    ).Content;
+                    );
+                    fileContents = inc.Content;
                     
                 }
                 catch (Exception e)
@@ -265,7 +320,7 @@ public class Main
                     try
                     {
                         // Write file to destination
-                        WriteFile(
+                        await WriteFile(
                             new WriteParams().Create(
                                 path: param.DestinationPath,
                                 file: newFilename,
@@ -296,7 +351,7 @@ public class Main
 
                         try
                         {
-                            WriteFile(
+                            await WriteFile(
                                 new WriteParams().Create(
                                     path: backupPath,
                                     file: backupFilename,
@@ -320,7 +375,7 @@ public class Main
                     {
                         try
                         {
-                            DeleteFile(
+                            await DeleteFile(
                                 new DeleteParams().Create(
                                     path: param.SourcePath,
                                     file: file
@@ -352,7 +407,7 @@ public class Main
 
                 try
                 {
-                    WriteFile(
+                    await WriteFile(
                         new WriteParams().Create(
                             path: config.ConfigPath,
                             file: $"{param.ObjectGuid}.json",

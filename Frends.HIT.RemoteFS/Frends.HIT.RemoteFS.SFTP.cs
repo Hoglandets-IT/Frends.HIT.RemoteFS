@@ -7,12 +7,34 @@ namespace Frends.HIT.RemoteFS;
 
 public class SFTP
 {
+    public static async Task<dynamic> DoMethod(string action, object[] parameters)
+    {
+        switch (action)
+        {
+            case "ListFiles":
+                return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
+            case "ReadFile":
+                return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
+            case "WriteFile":
+                await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "DeleteFile":
+                await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "CreateDir":
+                await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+        }
+
+        return true;
+    }
+    
     /// <summary>
     /// List files in a directory on an SFTP server
     /// </summary>
     /// <param name="input">The path to the directory to list, and regex to filter files</param>
     /// <param name="connection">The connection details for the server</param>
-    public static List<string> ListFiles(ListParams input, ServerConfiguration connection)
+    public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
@@ -37,7 +59,7 @@ public class SFTP
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static string ReadFile(ReadParams input, ServerConfiguration connection)
+    public static async Task<string> ReadFile(ReadParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -73,7 +95,7 @@ public class SFTP
     /// </summary>
     /// <param name="input">The params to identify the file and contents</param>
     /// <param name="connection">The connection settings</param>
-    public static void WriteFile(WriteParams input, ServerConfiguration connection)
+    public static async Task<bool> WriteFile(WriteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -105,6 +127,8 @@ public class SFTP
             // Write to the file
             client.WriteAllText(path, input.Content, encType);
         }
+
+        return true;
     }
 
     /// <summary>
@@ -112,7 +136,7 @@ public class SFTP
     /// </summary>
     /// <param name="input">The params to identify the directory</param>
     /// <param name="connection">The connection settings</param>
-    public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
+    public static async Task<bool> CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
@@ -153,6 +177,8 @@ public class SFTP
             }
             client.Disconnect();
         }
+
+        return true;
     }
     
     /// <summary>
@@ -160,7 +186,7 @@ public class SFTP
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
+    public static async Task<bool> DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
 
@@ -180,5 +206,7 @@ public class SFTP
             client.Delete(path);
             client.Disconnect();
         }
+
+        return true;
     }
 }

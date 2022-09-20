@@ -6,12 +6,36 @@ namespace Frends.HIT.RemoteFS;
 
 public class FTP
 {
+    public static async Task<dynamic> DoMethod(string action, object[] parameters)
+    {
+        switch (action)
+        {
+            case "ListFiles":
+                return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "ReadFile":
+                return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "WriteFile":
+                await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "DeleteFile":
+                await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+            case "CreateDir":
+                await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
+                break;
+        }
+
+        return true;
+    }
+    
     /// <summary>
     /// List files in a directory on a FTP server
     /// </summary>
     /// <param name="input">The path to the directory to list, and regex to filter files</param>
     /// <param name="connection">The connection details for the server</param>
-    public static List<string> ListFiles(ListParams input, ServerConfiguration connection)
+    public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
         var result = new List<string>();
 
@@ -38,7 +62,7 @@ public class FTP
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static string ReadFile(ReadParams input, ServerConfiguration connection)
+    public static async Task<string> ReadFile(ReadParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -68,7 +92,7 @@ public class FTP
     /// </summary>
     /// <param name="input">The params to identify the file and contents</param>
     /// <param name="connection">The connection settings</param>
-    public static void WriteFile(WriteParams input, ServerConfiguration connection)
+    public static async Task<bool> WriteFile(WriteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
         Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
@@ -93,6 +117,8 @@ public class FTP
             memStream.Dispose();
             client.Disconnect();
         }
+
+        return true;
     }
 
     /// <summary>
@@ -100,7 +126,7 @@ public class FTP
     /// </summary>
     /// <param name="input">The params to identify the directory</param>
     /// <param name="connection">The connection settings</param>
-    public static void CreateDir(CreateDirParams input, ServerConfiguration connection)
+    public static async Task<bool> CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
         using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
@@ -108,6 +134,8 @@ public class FTP
             client.CreateDirectory(input.Path, input.Recursive ?? false);
             client.Disconnect();
         }
+
+        return true;
     }
 
     /// <summary>
@@ -115,7 +143,7 @@ public class FTP
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static void DeleteFile(DeleteParams input, ServerConfiguration connection)
+    public static async Task<bool> DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
 
@@ -125,6 +153,7 @@ public class FTP
             client.DeleteFile(path);
             client.Disconnect();
         }
-        
+
+        return true;
     }
 }

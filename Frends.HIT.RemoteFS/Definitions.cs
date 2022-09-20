@@ -43,6 +43,32 @@ public enum FileEncodings
     LATIN_1
 }
 
+
+/// <summary>
+/// Types of objects to retrieve (files, directories or both
+/// </summary>
+public enum ObjectTypes
+{
+    /// <summary>
+    /// Retrieve only files
+    /// </summary>
+    [Display(Name = "Files")]
+    Files,
+    
+    /// <summary>
+    /// Retrieve only directories
+    /// </summary>
+    [Display(Name = "Directories")]
+    Directories,
+
+    /// <summary>
+    /// Retrieve both files and directories
+    /// </summary>
+    [Display(Name = "Both")]
+    Both
+}
+
+
 /// <summary>
 /// Available connection types
 /// </summary>
@@ -442,18 +468,26 @@ public class ListParams
     public string Pattern { get; set; } = "";
     
     /// <summary>
+    /// Choose whether to list only files, directories or both
+    /// </summary>
+    [DefaultValue(ObjectTypes.Files)]
+    public ObjectTypes ListType { get; set; } = ObjectTypes.Files;
+    
+    /// <summary>
     /// Creates a new instance of the class ListParams
     /// </summary>
     /// <returns>ListParams</returns>
     public ListParams Create(
         string path,
         FilterTypes filter,
-        string pattern
+        string pattern,
+        ObjectTypes listtype
     )
     {
         Path = path;
         Filter = filter;
         Pattern = pattern;
+        ListType = listtype;
         return this;
     }
 }
