@@ -150,7 +150,7 @@ public class SFTP
             }
             
             client.Connect();
-            if (input.Recursive ?? false)
+            if (input.Recursive)
             {
                 List<string> tPath = new List<string>();
 

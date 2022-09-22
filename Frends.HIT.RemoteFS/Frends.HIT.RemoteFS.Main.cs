@@ -139,26 +139,35 @@ public class Main
     public static async Task<DeleteResult> DeleteFile([PropertyTab] DeleteParams input, [PropertyTab] ServerParams connection)
     {
         var serverConfiguration = connection.GetServerConfiguration();
-        
-        switch (serverConfiguration.ConnectionType)
+        bool succ = true;
+        try
         {
-            case ConnectionTypes.SMB:
-                await SMB.DeleteFile(input, serverConfiguration);
-                break;
-            case ConnectionTypes.SFTP:
-                await SFTP.DeleteFile(input, serverConfiguration);
-                break;
-            
-            case ConnectionTypes.LocalStorage:
-                await LocalStorage.DeleteFile(input, serverConfiguration);
-                break;
-            
-            case ConnectionTypes.FTP:
-                await FTP.DeleteFile(input, serverConfiguration);
-                break;
+            switch (serverConfiguration.ConnectionType)
+            {
+                case ConnectionTypes.SMB:
+                    await SMB.DeleteFile(input, serverConfiguration);
+                    break;
+                case ConnectionTypes.SFTP:
+                    await SFTP.DeleteFile(input, serverConfiguration);
+                    break;
+
+                case ConnectionTypes.LocalStorage:
+                    await LocalStorage.DeleteFile(input, serverConfiguration);
+                    break;
+
+                case ConnectionTypes.FTP:
+                    await FTP.DeleteFile(input, serverConfiguration);
+                    break;
+            }
         }
-        
-        return new DeleteResult(true, string.Join("/", input.Path, input.File));
+        catch (System.NullReferenceException)
+        {
+            succ = false;
+            // throw new Exception(
+            // "File not found, or no connection established to server. Check the path and connection parameters.");
+        }
+
+        return new DeleteResult(succ, string.Join("/", input.Path, input.File));
     }
 
     [DisplayName("Copy File")]
@@ -221,9 +230,8 @@ public class Main
                     new ListParams().Create(
                       path: config.ConfigPath,
                       filter: FilterTypes.Exact,
-                      pattern: $"{param.ObjectGuid}.json",
-                      listtype: ObjectTypes.Files
-                    ),
+                      pattern: $"{param.ObjectGuid}.json"
+                      ),
                     configServer
                 );
 
@@ -266,8 +274,7 @@ public class Main
                 new ListParams().Create(
                     path: param.SourcePath,
                     filter: param.SourceFilterType,
-                    pattern: param.SourceFilterPattern,
-                    listtype: ObjectTypes.Files
+                    pattern: param.SourceFilterPattern
                 ),
                 sourceServer
             );

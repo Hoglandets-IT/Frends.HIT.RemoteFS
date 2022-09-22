@@ -131,7 +131,7 @@ public class FTP
         using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
             client.AutoConnect();
-            client.CreateDirectory(input.Path, input.Recursive ?? false);
+            client.CreateDirectory(input.Path, input.Recursive);
             client.Disconnect();
         }
 

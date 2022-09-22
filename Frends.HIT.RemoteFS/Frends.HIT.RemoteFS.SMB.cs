@@ -60,18 +60,23 @@ public class SMB
         }
         foreach (Node nod in listing)
         {
-            if (input.ListType == ObjectTypes.Both)
-            {
-                res.Add(nod.Name);    
-            }
-            else if (input.ListType == ObjectTypes.Directories && nod.Type == NodeType.Folder)
+            if (nod.Type == NodeType.File)
             {
                 res.Add(nod.Name);
             }
-            else if (input.ListType == ObjectTypes.Files && nod.Type == NodeType.File)
-            {
-                res.Add(nod.Name);
-            }
+            
+            // if (input.ListType == ObjectTypes.Both)
+            // {
+            //     res.Add(nod.Name);    
+            // }
+            // else if (input.ListType == ObjectTypes.Directories && nod.Type == NodeType.Folder)
+            // {
+                // res.Add(nod.Name);
+            // }
+            // else if (input.ListType == ObjectTypes.Files && nod.Type == NodeType.File)
+            // {
+                // res.Add(nod.Name);
+            // }
         }
 
         return res;

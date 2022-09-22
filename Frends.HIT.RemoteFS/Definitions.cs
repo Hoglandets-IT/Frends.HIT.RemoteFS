@@ -183,7 +183,7 @@ public class ServerConfiguration
     [DefaultValue(ConnectionTypes.SMB)]
     [Display(Name = "Remote Server Type")]
     public ConnectionTypes ConnectionType { get; set; }
-
+    
     /// <summary>
     /// The hostname or IP address of the server
     /// </summary>
@@ -191,7 +191,7 @@ public class ServerConfiguration
     [Display(Name = "Hostname/IP Address")]
     [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP)]
     public string Address { get; set; }
-    
+
     /// <summary>
     /// (optional) The domain of the SMB user for AD environments 
     /// </summary>
@@ -295,6 +295,11 @@ public class ServerConfiguration
         string fingerprint
     )
     {
+        if (!Enum.TryParse(typeof(ConnectionTypes), (string)connectiontype, true, out var tester ))
+        {
+            throw new ArgumentException($"Invalid connection type ({connectiontype})");
+        }
+        
         ConnectionType = (ConnectionTypes)Enum.Parse(typeof(ConnectionTypes), connectiontype);
         Address = address;
         Domain = domain;
@@ -468,26 +473,18 @@ public class ListParams
     public string Pattern { get; set; } = "";
     
     /// <summary>
-    /// Choose whether to list only files, directories or both
-    /// </summary>
-    [DefaultValue(ObjectTypes.Files)]
-    public ObjectTypes ListType { get; set; } = ObjectTypes.Files;
-    
-    /// <summary>
     /// Creates a new instance of the class ListParams
     /// </summary>
     /// <returns>ListParams</returns>
     public ListParams Create(
         string path,
         FilterTypes filter,
-        string pattern,
-        ObjectTypes listtype
+        string pattern
     )
     {
         Path = path;
         Filter = filter;
         Pattern = pattern;
-        ListType = listtype;
         return this;
     }
 }
@@ -653,12 +650,12 @@ public class CreateDirParams
     [DefaultValue(null)]
     [DisplayFormat(DataFormatString = "Text")]
     public string? Path { get; set; }
-    
+
     /// <summary>
     /// Whether to create all directories in the tree automatically
     /// </summary>
     [DefaultValue(false)]
-    public bool? Recursive { get; set; }
+    public bool Recursive { get; set; } = false;
     
     /// <summary>
     /// Parameters for creating a directory
