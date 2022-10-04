@@ -22,23 +22,24 @@ namespace Frends.HIT.RemoteFS;
 public class Main
 {
     [DisplayName("Run Executable")]
-    public static string RunExec()
+    public static List<string> RunExec()
     {
         string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
         string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
 
-        string ret = "";
+        string stder = "";
+        string stdot = "";
         using (var pp = new Process())
         {
-            pp.StartInfo.FileName = "ls -la";
+            pp.StartInfo.FileName = "/usr/bin/ls -la " + strWorkPath;
             pp.StartInfo.WorkingDirectory = strWorkPath;
             pp.StartInfo.CreateNoWindow = true;
             pp.StartInfo.UseShellExecute = false;
             pp.StartInfo.RedirectStandardOutput = true;
             pp.StartInfo.RedirectStandardError = true;
 
-            pp.OutputDataReceived += (sender, data) => ret += data.Data.ToString();
-            pp.ErrorDataReceived += (sender, data) => ret += data.Data.ToString();
+            pp.OutputDataReceived += (sender, data) => stdot += data.Data.ToString();
+            pp.ErrorDataReceived += (sender, data) => stder += data.Data.ToString();
 
             pp.Start();
             pp.BeginOutputReadLine();
@@ -47,7 +48,7 @@ public class Main
 
 
         }
-        return ret;
+        return new List<string>(){stder, stdot};
     }
 
     [DisplayName("List Files")]
