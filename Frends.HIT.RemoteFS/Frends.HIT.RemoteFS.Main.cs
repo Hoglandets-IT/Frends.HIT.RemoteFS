@@ -22,7 +22,7 @@ namespace Frends.HIT.RemoteFS;
 public class Main
 {
     [DisplayName("Run Executable")]
-    public static string RunExec()
+    public static string RunExec(string command, string args)
     {
         string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
         string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
@@ -31,8 +31,8 @@ public class Main
         using (var pp = new Process())
         {
             string stt = "";
-            pp.StartInfo.FileName = "ls";
-            pp.StartInfo.Arguments = "-la";
+            pp.StartInfo.FileName = command;
+            pp.StartInfo.Arguments = args;
             pp.StartInfo.WorkingDirectory = strWorkPath;
             pp.StartInfo.CreateNoWindow = true;
             pp.StartInfo.UseShellExecute = false;

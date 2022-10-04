@@ -2,8 +2,8 @@
 using Frends.HIT.RemoteFS;
 
 
-var test = Main.RunExec();
-Console.WriteLine("Helo");
+// var test = Main.RunExec();
+// Console.WriteLine("Helo");
 
 // using EzSmb;
 // using EzSmb.Paths;
