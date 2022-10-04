@@ -31,7 +31,7 @@ public class Main
         string stdot = "";
         using (var pp = new Process())
         {
-            pp.StartInfo.FileName = "/usr/bin/ls -la \"" + strWorkPath + "\"";
+            pp.StartInfo.FileName = "pwd";
             pp.StartInfo.WorkingDirectory = strWorkPath;
             pp.StartInfo.CreateNoWindow = true;
             pp.StartInfo.UseShellExecute = false;
