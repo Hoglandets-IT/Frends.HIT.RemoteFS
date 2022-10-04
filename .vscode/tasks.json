@@ -3,15 +3,24 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet",
+            "command": "/home/gitpod/dotnet/dotnet",
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.csproj",
+                "/workspace/Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.Tests/Frends.HIT.RemoteFS.Tests.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "run",
+            "command": "/home/gitpod/dotnet/dotnet",
+            "type": "process",
+            "args": [
+                "run",
+                "/workspace/Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.Tests/Program.cs"
+            ]
         },
         {
             "label": "publish",

@@ -22,15 +22,15 @@ namespace Frends.HIT.RemoteFS;
 public class Main
 {
     [DisplayName("Run Executable")]
-    public static List<string> RunExec()
+    public static string RunExec()
     {
         string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
         string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
-
-        string stder = "";
-        string stdot = "";
+        Console.WriteLine(strExeFilePath);
+        Console.WriteLine(strWorkPath);
         using (var pp = new Process())
         {
+            string stt = "";
             pp.StartInfo.FileName = "pwd";
             pp.StartInfo.WorkingDirectory = strWorkPath;
             pp.StartInfo.CreateNoWindow = true;
@@ -38,17 +38,14 @@ public class Main
             pp.StartInfo.RedirectStandardOutput = true;
             pp.StartInfo.RedirectStandardError = true;
 
-            pp.OutputDataReceived += (sender, data) => stdot += data.Data.ToString();
-            pp.ErrorDataReceived += (sender, data) => stder += data.Data.ToString();
+            pp.OutputDataReceived += (sender, data) => Console.WriteLine("ot" + data.Data);
+            pp.ErrorDataReceived += (sender, data) => Console.WriteLine("er" + data.Data);
 
             pp.Start();
-            pp.BeginOutputReadLine();
-            pp.BeginErrorReadLine();
-            var exited = pp.WaitForExit(1000*10);
-
-
+            pp.WaitForExit(1000*10);
+            stt = pp.StandardOutput.ReadToEnd().TrimEnd('\n');
+            return stt;
         }
-        return new List<string>(){stder, stdot};
     }
 
     [DisplayName("List Files")]

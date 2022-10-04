@@ -4,12 +4,24 @@
         "name": "Run Tests",
         "type": "coreclr",
         "request": "launch",
+        "program": "/workspace/Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.Tests/bin/Debug/net6.0/Frends.HIT.RemoteFS.Tests.dll",
+        "args": [],
+        "cwd": "/workspace/Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.Tests",
+        "stopAtEntry": false,
+        "console": "integratedTerminal"
+    },
+    {
+        "name": "ProgramCS",
+        "type": "coreclr",
+        "request": "launch",
         "preLaunchTask": "build",
         "program": "/workspace/Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.Tests/bin/Debug/net6.0/Frends.HIT.RemoteFS.Tests.dll",
         "args": [],
         "cwd": "/workspace/Frends.HIT.RemoteFS/Frends.HIT.RemoteFS.Tests",
         "stopAtEntry": false,
-        "console": "internalConsole"
+        "console": "integratedTerminal",
+        "launchSettingsProfile": "run",
+        "justMyCode": false
     }
     ]
 }

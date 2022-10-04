@@ -1,0 +1,12 @@
+{
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "/bin/bash",
+            "icon": "terminal-bash"
+        },
+        "dotnet": {
+            "path": "/home/gitpod/dotnet/dotnet",
+            "icon": "add"
+        }
+    }
+}
