@@ -1,6 +1,9 @@
 ﻿{
   "Tasks": [
     {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.RunExec"
+    },
+    {
       "TaskMethod": "Frends.HIT.RemoteFS.Main.ListFiles"
     },
     {

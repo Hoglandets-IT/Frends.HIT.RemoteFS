@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Diagnostics;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Text;
 using Newtonsoft.Json;
@@ -20,6 +21,31 @@ namespace Frends.HIT.RemoteFS;
 [DisplayName("RemoteFS")]
 public class Main
 {
+    [DisplayName("Run Executable")]
+    public static string RunExec()
+    {
+        string ret = "";
+        using (var pp = new Process())
+        {
+            pp.StartInfo.FileName = "ls -la";
+            pp.StartInfo.CreateNoWindow = true;
+            pp.StartInfo.UseShellExecute = false;
+            pp.StartInfo.RedirectStandardOutput = true;
+            pp.StartInfo.RedirectStandardError = true;
+
+            pp.OutputDataReceived += (sender, data) => ret += data.Data.ToString();
+            pp.ErrorDataReceived += (sender, data) => ret += data.Data.ToString();
+
+            pp.Start();
+            pp.BeginOutputReadLine();
+            pp.BeginErrorReadLine();
+            var exited = pp.WaitForExit(1000*10);
+
+
+        }
+        return ret
+    }
+
     [DisplayName("List Files")]
     public static async Task<ListResult> ListFiles([PropertyTab] ListParams input, [PropertyTab] ServerParams connection)
     {
