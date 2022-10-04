@@ -24,10 +24,14 @@ public class Main
     [DisplayName("Run Executable")]
     public static string RunExec()
     {
+        string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
+
         string ret = "";
         using (var pp = new Process())
         {
             pp.StartInfo.FileName = "ls -la";
+            pp.StartInfo.WorkingDirectory = strWorkPath;
             pp.StartInfo.CreateNoWindow = true;
             pp.StartInfo.UseShellExecute = false;
             pp.StartInfo.RedirectStandardOutput = true;
