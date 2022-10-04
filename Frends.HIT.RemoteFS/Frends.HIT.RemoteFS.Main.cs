@@ -31,7 +31,8 @@ public class Main
         using (var pp = new Process())
         {
             string stt = "";
-            pp.StartInfo.FileName = "pwd";
+            pp.StartInfo.FileName = "ls";
+            pp.StartInfo.Arguments = "-la";
             pp.StartInfo.WorkingDirectory = strWorkPath;
             pp.StartInfo.CreateNoWindow = true;
             pp.StartInfo.UseShellExecute = false;
