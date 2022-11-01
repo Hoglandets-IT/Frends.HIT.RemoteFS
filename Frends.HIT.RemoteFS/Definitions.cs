@@ -747,7 +747,21 @@ public class BatchConfigParams
     /// </summary>
     [DefaultValue(false)]
     public bool BackupFiles { get; set; }
-    
+
+    /// <summary>
+    /// Backup files to a sub-folder in the source location
+    /// </summary>
+    [DefaultValue(false)]
+    [UIHint(nameof(BackupFiles), "", true)]
+    public bool BackupToSubfolder { get; set; }
+
+    /// <summary>
+    /// Sub-folder name to use
+    /// </summary>
+    [DefaultValue("Archive")]
+    [UIHint(nameof(BackupToSubfolder), "", true)]
+    public string SubfolderName { get; set; }
+
     /// <summary>
     /// Whether to backup the files to the same server used for the configuration above
     /// </summary>
@@ -763,7 +777,7 @@ public class BatchConfigParams
     public string BackupServer { get; set; }
     
     /// <summary>
-    /// The path on the server to use for backing up the files
+    /// The path to use for backing up the files 
     /// </summary>
     [DefaultValue(null)]
     [UIHint(nameof(BackupFiles), "", true)]
@@ -804,7 +818,10 @@ public class BatchConfigParams
                 return GetConfigurationServerParams();
             }
 
-            return new ServerParams().Create(ConfigurationType.Json, BackupServer);
+            if (!BackupToSubfolder)
+            {
+                return new ServerParams().Create(ConfigurationType.Json, BackupServer);
+            }
         }
 
         return null;

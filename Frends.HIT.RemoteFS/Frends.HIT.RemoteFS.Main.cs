@@ -222,6 +222,8 @@ public class Main
         var configServer = config.GetConfigurationServerParams();
         var backupServer = config.GetBackupServerParams();
         string backupPath = "";
+        string backupPathSubfolder = "";
+
         List<BatchResult> results = new List<BatchResult>();
         
         foreach (BatchParams param in input)
@@ -254,7 +256,7 @@ public class Main
                         throw new Exception($"Could not create config directory {configPath}: ", e);
                 }
                 
-                
+
                 var isFile = await ListFiles(
                     new ListParams().Create(
                       path: config.ConfigPath,
@@ -282,21 +284,37 @@ public class Main
 
             if (config.BackupFiles)
             {
-                backupPath = config.BackupPath; 
-                if (!config.BackupPath.EndsWith('/'))
+                if (backupServer != null)
                 {
-                    backupPath = backupPath + '/';
+                    backupPath = config.BackupPath; 
+                    if (!config.BackupPath.EndsWith('/'))
+                    {
+                        backupPath = backupPath + '/';
+                    }
+
+                    backupPath += param.ObjectGuid;
+
+                    await CreateDir(
+                        new CreateDirParams().Create(
+                            path: backupPath,
+                            recursive: true
+                        ),
+                        backupServer
+                    );
                 }
 
-                backupPath += param.ObjectGuid;
+                if (config.BackupToSubfolder)
+                {
+                    backupPathSubfolder = Helpers.JoinPath("/", param.SourcePath, config.SubfolderName);
 
-                await CreateDir(
-                    new CreateDirParams().Create(
-                        path: backupPath,
-                        recursive: true
-                    ),
-                    backupServer
-                );
+                    await CreateDir(
+                        new CreateDirParams().Create(
+                            path: backupPathSubfolder,
+                            recursive: true
+                        ),
+                        sourceServer
+                    );
+                }
             }
 
             var fileList = await ListFiles(
@@ -375,9 +393,9 @@ public class Main
 
                 if (errorStr == "")
                 {
-                    // If backup is enabled, also write file to backup server/folder
+                    // If backup to special dir is enabled, also write file to backup server/folder
                     if (config.BackupFiles)
-                    {
+                    { 
                         string backupFilename = Helpers.FilenameSubstitutions(
                             input: config.BackupFilename,
                             file,
@@ -385,25 +403,48 @@ public class Main
                             incremental
                         );
 
-                        try
+                        if (backupServer != null)
                         {
-                            await WriteFile(
-                                new WriteParams().Create(
-                                    path: backupPath,
-                                    file: backupFilename,
-                                    overwrite: param.Overwrite,
-                                    content: fileContents,
-                                    encoding: param.DestinationEncoding
-                                ),
-                                backupServer
-                            );
+                            try
+                            {
+                                await WriteFile(
+                                    new WriteParams().Create(
+                                        path: backupPath,
+                                        file: backupFilename,
+                                        overwrite: param.Overwrite,
+                                        content: fileContents,
+                                        encoding: param.DestinationEncoding
+                                    ),
+                                    backupServer
+                                );
+                            }
+                            catch (Exception e)
+                            {
+                                errorStr = $"Error writing backup file to {backupServer.Address}:{backupPath}/{backupFilename}: {e.Message}";
+                            }
                         }
-                        catch (Exception e)
+
+                        
+                        else if (config.BackupToSubfolder && backupPathSubfolder != "")
                         {
-                            errorStr = $"Error writing backup file to {backupServer.Address}:{backupPath}/{backupFilename}: {e.Message}";
+                            try
+                            {
+                                await WriteFile(
+                                    new WriteParams().Create(
+                                        path: backupPathSubfolder,
+                                        file: backupFilename,
+                                        overwrite: param.Overwrite,
+                                        content: fileContents,
+                                        encoding: param.SourceEncoding
+                                    ),
+                                    sourceServer
+                                );
+                            }
+                            catch (Exception e)
+                            {
+                                errorStr = $"Error writing backup file to {sourceServer.Address}:{Helpers.JoinPath("/", param.SourcePath, backupPathSubfolder)}/{backupFilename}: {e.Message}";
+                            }
                         }
-                        
-                        
                     }
                     
                     // Delete source file if configured
