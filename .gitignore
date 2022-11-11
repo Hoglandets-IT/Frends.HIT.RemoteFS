@@ -353,3 +353,4 @@ MigrationBackup/
 Frends.HIT.RemoteFS/.idea/
 
 Frends.HIT.RemoteFS.Tests/core
+Frends.HIT.RemoteFS.Tests/ProgramManualTest.cs

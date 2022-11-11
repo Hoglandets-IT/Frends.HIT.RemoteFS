@@ -13,6 +13,12 @@ namespace Frends.HIT.RemoteFS;
 public enum FileEncodings
 {
     /// <summary>
+    /// Raw Bytes
+    /// </summary>
+    [Display(Name = "Raw")]
+    RAW,
+
+    /// <summary>
     /// UTF-8 Encoding
     /// </summary>
     [Display(Name = "UTF-8")]
@@ -394,34 +400,6 @@ public class ServerParams
     public string Fingerprint { get; set; } = "";
 
     /// <summary>
-    /// Initialize a new class of the type ServerParams
-    /// </summary>
-    public ServerParams Create(
-        ConfigurationType configurationType,
-        string jsonConfiguration,
-        string address = "",
-        string domain = "",
-        string username = "",
-        string password = "",
-        string privatekey = "",
-        string privatekeypassword = "",
-        string fingerprint = ""
-    )
-    {
-        ConfigurationSource = configurationType;
-        JsonConfiguration = jsonConfiguration;
-        Address = address;
-        Domain = domain;
-        Username = username;
-        Password = password;
-        PrivateKey = privatekey;
-        PrivateKeyPassword = privatekeypassword;
-        Fingerprint = fingerprint;
-
-        return this;
-    }
-
-    /// <summary>
     /// Get the server configuration object from the parameters
     /// </summary>
     /// <returns>ServerConfiguration</returns>
@@ -471,22 +449,6 @@ public class ListParams
     [DefaultValue("")]
     [DisplayFormat(DataFormatString = "Text")]
     public string Pattern { get; set; } = "";
-    
-    /// <summary>
-    /// Creates a new instance of the class ListParams
-    /// </summary>
-    /// <returns>ListParams</returns>
-    public ListParams Create(
-        string path,
-        FilterTypes filter,
-        string pattern
-    )
-    {
-        Path = path;
-        Filter = filter;
-        Pattern = pattern;
-        return this;
-    }
 }
 
 /// <summary>
@@ -515,22 +477,6 @@ public class ReadParams
     /// </summary>
     [DefaultValue(FileEncodings.UTF_8)]
     public FileEncodings Encoding { get; set; }
-
-    /// <summary>
-    /// Creates a new instance of the class ReadParams
-    /// </summary>
-    /// <returns>ReadParams</returns>
-    public ReadParams Create(
-        string path,
-        string file,
-        FileEncodings encoding
-    )
-    {
-        Path = path;
-        File = file;
-        Encoding = encoding;
-        return this;
-    }
 }
 
 [DisplayName("Parameters")]
@@ -553,9 +499,18 @@ public class WriteParams
     /// <summary>
     /// The content to write to the file
     /// </summary>
-    [DefaultValue(null)]
+    [DefaultValue("")]
+    [UIHint(nameof(Encoding), "", FileEncodings.ASCII, FileEncodings.ISO_8859_1, FileEncodings.LATIN_1, FileEncodings.UTF_32, FileEncodings.UTF_8)]
     [DisplayFormat(DataFormatString = "Text")]
     public string Content { get; set; }
+    
+    /// <summary>
+    /// The content to write to the file
+    /// </summary>
+    [DefaultValue(new byte[]{})]
+    [UIHint(nameof(Encoding), "", FileEncodings.RAW)]
+    [DisplayFormat(DataFormatString = "Text")]
+    public byte[] ByteContent { get; set; }
     
     /// <summary>
     /// Whether to overwrite the file if it already exists
@@ -568,27 +523,6 @@ public class WriteParams
     /// </summary>
     [DefaultValue(FileEncodings.UTF_8)]
     public FileEncodings Encoding { get; set; }
-    
-    /// <summary>
-    /// Creates a new instance of the class WriteParams
-    /// </summary>
-    /// <returns>WriteParams</returns>
-    public WriteParams Create(
-        string path,
-        string file,
-        string content,
-        bool overwrite,
-        FileEncodings encoding
-    )
-    {
-        Path = path;
-        File = file;
-        Content = content;
-        Overwrite = overwrite;
-        Encoding = encoding;
-
-        return this;
-    }
 }
 
 /// <summary>
@@ -627,15 +561,16 @@ public class CopyDestParams
     /// </summary>
     /// <param name="content"></param>
     /// <returns></returns>
-    public WriteParams GetWriteParams(string content)
+    public WriteParams GetWriteParams(string content, byte[] bytecontent)
     {
-        return new WriteParams().Create(
-            path: Path,
-            file: File,
-            content: content,
-            overwrite: Overwrite,
-            encoding: Encoding
-        );
+        return new WriteParams(){
+            Path=Path,
+            File=File,
+            Content=content,
+            ByteContent=bytecontent,
+            Overwrite=Overwrite,
+            Encoding=Encoding
+        };
     }
 }
 
@@ -656,22 +591,6 @@ public class CreateDirParams
     /// </summary>
     [DefaultValue(false)]
     public bool Recursive { get; set; } = false;
-    
-    /// <summary>
-    /// Parameters for creating a directory
-    /// </summary>
-    /// <param name="path">The path to the directory/-ies</param>
-    /// <param name="recursive">Whether to automatically create all folders in the tree</param>
-    /// <returns></returns>
-    public CreateDirParams Create(
-        string path,
-        bool recursive
-    )
-    {
-        Path = path;
-        Recursive = recursive;
-        return this;
-    }
 }
 
 /// <summary>
@@ -694,19 +613,7 @@ public class DeleteParams
     [DisplayFormat(DataFormatString = "Text")]
     public string File { get; set; }
     
-    /// <summary>
-    /// Creates a new DeleteParams object
-    /// </summary>
-    /// <returns>DeleteParams</returns>
-    public DeleteParams Create(
-        string path,
-        string file
-    )
-    {
-        Path = path;
-        File = file;
-        return this;
-    }
+    
 }
 
 /// <summary>
@@ -799,7 +706,10 @@ public class BatchConfigParams
     {
         if (Enabled && UseConfigServer)
         {
-            return new ServerParams().Create(ConfigurationType.Json, ConfigServer);
+            return new ServerParams(){
+                ConfigurationSource=ConfigurationType.Json,
+                JsonConfiguration=ConfigServer
+            };
         }
 
         return null;
@@ -820,7 +730,10 @@ public class BatchConfigParams
 
             if (!BackupToSubfolder)
             {
-                return new ServerParams().Create(ConfigurationType.Json, BackupServer);
+                return new ServerParams(){
+                    ConfigurationSource=ConfigurationType.Json,
+                    JsonConfiguration=BackupServer
+                };
             }
         }
 
@@ -902,7 +815,10 @@ public class BatchParams
     /// <returns>ServerParams</returns>
     public ServerParams? GetSourceServerParams()
     {
-        return new ServerParams().Create(ConfigurationType.Json, SourceServer);
+        return new ServerParams(){
+            ConfigurationSource=ConfigurationType.Json,
+            JsonConfiguration=SourceServer
+        };
     }
 
     /// <summary>
@@ -911,7 +827,10 @@ public class BatchParams
     /// <returns>ServerParams</returns>
     public ServerParams? GetDestinationServerParams()
     {
-        return new ServerParams().Create(ConfigurationType.Json, DestinationServer);
+       return new ServerParams(){
+            ConfigurationSource=ConfigurationType.Json,
+            JsonConfiguration=DestinationServer
+        };
     }
 }
 
@@ -954,6 +873,11 @@ public class ReadResult
     public string Content { get; set; }
     
     /// <summary>
+    /// The content of the read file
+    /// </summary>
+    public byte[] ByteContent { get; set; }
+    
+    /// <summary>
     /// The path to the file that was read
     /// </summary>
     public string Path { get; set; }
@@ -968,6 +892,7 @@ public class ReadResult
     /// </summary>
     public ReadResult(
         string content,
+        byte[] bytecontent,
         string path,
         FileEncodings encoding
     )
@@ -975,6 +900,7 @@ public class ReadResult
         Content = content;
         Path = path;
         Encoding = encoding;
+        ByteContent = bytecontent;
     }
 }
 

@@ -89,10 +89,8 @@ public class SMB
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
     
-    public static async Task<string> ReadFile(ReadParams input, ServerConfiguration connection)
+    public static async Task<byte[]> ReadFile(ReadParams input, ServerConfiguration connection)
     {
-        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
-
         var file = await Node.GetNode(Helpers.JoinPath("/", connection.Address, input.Path, input.File),
             Helpers.GetSMBConnectionParams(connection)
         );
@@ -106,7 +104,7 @@ public class SMB
 
         using (var stream = await file.Read())
         {
-            return encType.GetString(stream.ToArray());
+            return stream.ToArray();
         }
     }
 
@@ -117,7 +115,6 @@ public class SMB
     /// <param name="connection">The connection settings</param>
     public static async Task<bool> WriteFile(WriteParams input, ServerConfiguration connection)
     {
-        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
         var pathParts = Helpers.JoinPath("/", separateLastPart: true, connection.Address, input.Path, input.File);
 
         var folder = await Node.GetNode(pathParts[0], Helpers.GetSMBConnectionParams(connection));
@@ -135,9 +132,7 @@ public class SMB
             throw new Exception($"File already exists, and overwrite is not set to true. ({pathParts[1]})");
         }
         
-        var text = encType.GetBytes(input.Content);
-
-        using (var stream = new MemoryStream(text))
+        using (var stream = new MemoryStream(input.ByteContent))
         {
             await folder.Write(stream, pathParts[1]);
 

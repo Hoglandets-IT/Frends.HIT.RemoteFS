@@ -85,7 +85,7 @@ public class Main
     public static async Task<ReadResult> ReadFile([PropertyTab] ReadParams input, [PropertyTab] ServerParams connection)
     {
         var serverConfiguration = connection.GetServerConfiguration();
-        string content = null;
+        byte[] content = null;
         
         switch (serverConfiguration.ConnectionType)
         {
@@ -94,21 +94,26 @@ public class Main
                 break;
             case ConnectionTypes.SFTP:
                 content = await SFTP.ReadFile(input, serverConfiguration);
-                break;
-            
+                break; 
             case ConnectionTypes.LocalStorage:
                 content = await LocalStorage.ReadFile(input, serverConfiguration);
                 break;
-            
             case ConnectionTypes.FTP:
                 content = await FTP.ReadFile(input, serverConfiguration);
                 break;
         }
         
+        string encoded = "";
+        if (input.Encoding != FileEncodings.RAW) {
+            Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
+            encoded = encType.GetString(content);
+        }
+
         return new ReadResult(
-            content=content,
-            string.Join("/", new string[] { input.Path, input.File }),
-            input.Encoding
+            content: encoded,
+            bytecontent: content,
+            path: string.Join("/", new string[] { input.Path, input.File }),
+            encoding: input.Encoding
         );
     }
 
@@ -117,6 +122,12 @@ public class Main
     {
         var serverConfiguration = connection.GetServerConfiguration();
         
+        if (input.Encoding != FileEncodings.RAW) 
+        {
+            Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
+            input.ByteContent = encType.GetBytes(input.Content);
+        }
+
         switch (serverConfiguration.ConnectionType)
         {
             case ConnectionTypes.SMB:
@@ -125,11 +136,9 @@ public class Main
             case ConnectionTypes.SFTP:
                 await SFTP.WriteFile(input, serverConfiguration);
                 break;
-            
             case ConnectionTypes.LocalStorage:
                 await LocalStorage.WriteFile(input, serverConfiguration);
                 break;
-            
             case ConnectionTypes.FTP:
                 await FTP.WriteFile(input, serverConfiguration);
                 break;
@@ -208,7 +217,13 @@ public class Main
     )
     {
         var file = await ReadFile(sourceInput, sourceConnection);
-        await WriteFile(destinationInput.GetWriteParams(file.Content), destinationConnection);
+        await WriteFile(
+            destinationInput.GetWriteParams(
+                file.Content,
+                file.ByteContent
+            ),
+            destinationConnection
+        );
 
         return new CopyResult(true);
     }
@@ -244,10 +259,10 @@ public class Main
                     }
                     
                     await CreateDir(
-                        new CreateDirParams().Create(
-                            path: configPath,
-                            recursive: true
-                        ),
+                        new CreateDirParams(){
+                            Path = configPath,
+                            Recursive = true
+                        },
                         configServer
                     );
                 }
@@ -258,22 +273,22 @@ public class Main
                 
 
                 var isFile = await ListFiles(
-                    new ListParams().Create(
-                      path: config.ConfigPath,
-                      filter: FilterTypes.Exact,
-                      pattern: $"{param.ObjectGuid}.json"
-                      ),
+                    new ListParams(){
+                        Path = config.ConfigPath,
+                        Filter = FilterTypes.Exact,
+                        Pattern = $"{param.ObjectGuid}.json"
+                    },
                     configServer
                 );
 
                 if (isFile.Count != 0)
                 {
                     var inc = await ReadFile(
-                        new ReadParams().Create(
-                            path: config.ConfigPath,
-                            file: $"{param.ObjectGuid}.json",
-                            FileEncodings.UTF_8
-                        ),
+                        new ReadParams(){
+                            Path = config.ConfigPath,
+                            File = $"{param.ObjectGuid}.json",
+                            Encoding = FileEncodings.UTF_8
+                        },
                         configServer
                     );
                     incremental = Int32.Parse(
@@ -295,10 +310,10 @@ public class Main
                     backupPath += param.ObjectGuid;
 
                     await CreateDir(
-                        new CreateDirParams().Create(
-                            path: backupPath,
-                            recursive: true
-                        ),
+                        new CreateDirParams(){
+                            Path = backupPath,
+                            Recursive = true
+                        },
                         backupServer
                     );
                 }
@@ -308,21 +323,21 @@ public class Main
                     backupPathSubfolder = Helpers.JoinPath("/", param.SourcePath, config.SubfolderName);
 
                     await CreateDir(
-                        new CreateDirParams().Create(
-                            path: backupPathSubfolder,
-                            recursive: true
-                        ),
+                        new CreateDirParams(){
+                            Path = backupPathSubfolder,
+                            Recursive = true
+                        },
                         sourceServer
                     );
                 }
             }
 
             var fileList = await ListFiles(
-                new ListParams().Create(
-                    path: param.SourcePath,
-                    filter: param.SourceFilterType,
-                    pattern: param.SourceFilterPattern
-                ),
+                new ListParams(){
+                    Path = param.SourcePath,
+                    Filter = param.SourceFilterType,
+                    Pattern = param.SourceFilterPattern
+                },
                 sourceServer
             );
 
@@ -330,18 +345,20 @@ public class Main
             {
                 string errorStr = "";
                 string fileContents = "";
+                byte[] fileContentsByte = null;
 
                 try
                 {
                     var inc = await ReadFile(
-                        new ReadParams().Create(
-                            path: param.SourcePath,
-                            file: file,
-                            encoding: param.SourceEncoding
-                        ),
+                        new ReadParams(){
+                            Path = param.SourcePath,
+                            File = file,
+                            Encoding = param.SourceEncoding
+                        },
                         sourceServer
                     );
                     fileContents = inc.Content;
+                    fileContentsByte = inc.ByteContent;
                     
                 }
                 catch (Exception e)
@@ -375,13 +392,14 @@ public class Main
                     {
                         // Write file to destination
                         await WriteFile(
-                            new WriteParams().Create(
-                                path: param.DestinationPath,
-                                file: newFilename,
-                                overwrite: param.Overwrite,
-                                content: fileContents,
-                                encoding: param.DestinationEncoding
-                            ),
+                            new WriteParams(){
+                                Path = param.DestinationPath,
+                                File = newFilename,
+                                Overwrite = param.Overwrite,
+                                Content = fileContents,
+                                ByteContent = fileContentsByte,
+                                Encoding = param.DestinationEncoding
+                            },
                             destinationServer
                         );
                     }
@@ -408,13 +426,14 @@ public class Main
                             try
                             {
                                 await WriteFile(
-                                    new WriteParams().Create(
-                                        path: backupPath,
-                                        file: backupFilename,
-                                        overwrite: param.Overwrite,
-                                        content: fileContents,
-                                        encoding: param.DestinationEncoding
-                                    ),
+                                    new WriteParams(){
+                                        Path = backupPath,
+                                        File = backupFilename,
+                                        Overwrite = param.Overwrite,
+                                        Content = fileContents,
+                                        ByteContent = fileContentsByte,
+                                        Encoding = param.DestinationEncoding
+                                    },
                                     backupServer
                                 );
                             }
@@ -430,13 +449,14 @@ public class Main
                             try
                             {
                                 await WriteFile(
-                                    new WriteParams().Create(
-                                        path: backupPathSubfolder,
-                                        file: backupFilename,
-                                        overwrite: param.Overwrite,
-                                        content: fileContents,
-                                        encoding: param.SourceEncoding
-                                    ),
+                                    new WriteParams(){
+                                        Path = backupPathSubfolder,
+                                        File = backupFilename,
+                                        Overwrite = param.Overwrite,
+                                        Content = fileContents,
+                                        ByteContent = fileContentsByte,
+                                        Encoding = param.DestinationEncoding
+                                    },
                                     sourceServer
                                 );
                             }
@@ -453,10 +473,10 @@ public class Main
                         try
                         {
                             await DeleteFile(
-                                new DeleteParams().Create(
-                                    path: param.SourcePath,
-                                    file: file
-                                ),
+                                new DeleteParams(){
+                                    Path = param.SourcePath,
+                                    File = file
+                                },
                                 sourceServer
                             );
                         }
@@ -485,13 +505,14 @@ public class Main
                 try
                 {
                     await WriteFile(
-                        new WriteParams().Create(
-                            path: config.ConfigPath,
-                            file: $"{param.ObjectGuid}.json",
-                            overwrite: true,
-                            content: incremental.ToString(),
-                            encoding: FileEncodings.UTF_8
-                        ),
+                        new WriteParams(){
+                            Path = config.ConfigPath,
+                            File = $"{param.ObjectGuid}.json",
+                            Overwrite = true,
+                            Content = incremental.ToString(),
+                            ByteContent = new byte[]{},
+                            Encoding = FileEncodings.UTF_8
+                        },
                         configServer
                     );
                 }

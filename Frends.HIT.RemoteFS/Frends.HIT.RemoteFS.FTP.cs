@@ -62,10 +62,9 @@ public class FTP
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static async Task<string> ReadFile(ReadParams input, ServerConfiguration connection)
+    public static async Task<byte[]> ReadFile(ReadParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
-        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
         
         using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
@@ -77,8 +76,7 @@ public class FTP
                 var file = client.Download(memStream, path);
 
                 client.Disconnect();
-
-                return encType.GetString(memStream.ToArray());
+                return memStream.ToArray();
             }
             catch (Exception e)
             {
@@ -95,7 +93,6 @@ public class FTP
     public static async Task<bool> WriteFile(WriteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
-        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
 
         using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
@@ -107,7 +104,7 @@ public class FTP
                 overwrite = FtpRemoteExists.Overwrite;
             }
             
-            var memStream = new MemoryStream(encType.GetBytes(input.Content));
+            var memStream = new MemoryStream(input.ByteContent);
             var file = client.Upload(memStream, path, overwrite, false);
             if (file == FtpStatus.Failed || file == FtpStatus.Skipped)
             {

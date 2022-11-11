@@ -59,10 +59,9 @@ public class SFTP
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static async Task<string> ReadFile(ReadParams input, ServerConfiguration connection)
+    public static async Task<byte[]> ReadFile(ReadParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
-        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
 
         try
         {
@@ -78,10 +77,10 @@ public class SFTP
                 }
                 
                 client.Connect();
-                var file = client.ReadAllText(path, encType);
+                var file = client.ReadAllBytes(path);
                 client.Disconnect();
-
-                return file.ToString();
+                
+                return file;
             }
         }
         catch (Exception e)
@@ -98,7 +97,6 @@ public class SFTP
     public static async Task<bool> WriteFile(WriteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
-        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
 
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
@@ -125,7 +123,7 @@ public class SFTP
             }
             
             // Write to the file
-            client.WriteAllText(path, input.Content, encType);
+            client.WriteAllBytes(path, input.ByteContent);
         }
 
         return true;

@@ -53,15 +53,13 @@ public class LocalStorage
     /// </summary>
     /// <param name="input">The params to identify the file</param>
     /// <param name="connection">The connection settings</param>
-    public static async Task<string> ReadFile(ReadParams input, ServerConfiguration connection)
+    public static async Task<byte[]> ReadFile(ReadParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
-        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
 
         try
         {
-
-            string file = File.ReadAllText(path, encType);
+            var file = File.ReadAllBytes(path);
             return file;
         }
         catch (Exception e)
@@ -78,7 +76,6 @@ public class LocalStorage
     public static async Task<bool> WriteFile(WriteParams input, ServerConfiguration connection)
     {
         string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
-        Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
         
         try
         {
@@ -93,7 +90,7 @@ public class LocalStorage
                 File.Delete(path);
             }
             
-            File.WriteAllText(path, input.Content, encType);
+            File.WriteAllBytes(path, input.ByteContent);
         }
         catch (Exception e)
         {
