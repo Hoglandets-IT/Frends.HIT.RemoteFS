@@ -359,6 +359,7 @@ public class ServerParams
     /// <summary>
     /// (optional) The domain of the SMB user for AD environments 
     /// </summary>
+    [DisplayFormat(DataFormatString = "Text")]
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SMB)]
     [Display(Name = "AD/LDAP Domain")]
     public string Domain { get; set; } = "";
@@ -366,6 +367,7 @@ public class ServerParams
     /// <summary>
     /// The username used for connecting to the remote server
     /// </summary>
+    [DisplayFormat(DataFormatString = "Text")]
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.FTP, ConfigurationType.SFTP, ConfigurationType.SMB)]
     [Display(Name = "Username")]
     public string Username { get; set; } = "";
@@ -383,6 +385,7 @@ public class ServerParams
     /// </summary>
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP)]
     [Display(Name = "OpenSSH Private Key")]
+    [DisplayFormat(DataFormatString = "Text")]
     public string PrivateKey { get; set; } = "";
     
 	/// <summary>
@@ -390,6 +393,7 @@ public class ServerParams
     /// </summary>
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP)]
     [Display(Name = "Private Key Password")]
+    [DisplayFormat(DataFormatString = "Text")]
     public string PrivateKeyPassword { get; set; } = "";
 
     /// <summary>
@@ -397,6 +401,7 @@ public class ServerParams
     /// </summary>
     [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP)]
     [Display(Name = "Fingerprint")]
+    [DisplayFormat(DataFormatString = "Text")]
     public string Fingerprint { get; set; } = "";
 
     /// <summary>
@@ -582,9 +587,9 @@ public class CreateDirParams
     /// <summary>
     /// The path to the directory/-ies to create
     /// </summary>
-    [DefaultValue(null)]
+    [DefaultValue("")]
     [DisplayFormat(DataFormatString = "Text")]
-    public string? Path { get; set; }
+    public string Path { get; set; } = "";
 
     /// <summary>
     /// Whether to create all directories in the tree automatically
@@ -602,16 +607,16 @@ public class DeleteParams
     /// <summary>
     /// The path to the folder from which to delete files
     /// </summary>
-    [DefaultValue(null)]
+    [DefaultValue("")]
     [DisplayFormat(DataFormatString = "Text")]
-    public string Path { get; set; }
+    public string Path { get; set; } = "";
 
     /// <summary>
     /// The file in the folder above to delete
     /// </summary>
     [DefaultValue("")]
     [DisplayFormat(DataFormatString = "Text")]
-    public string File { get; set; }
+    public string File { get; set; } = "";
     
     
 }
@@ -626,69 +631,73 @@ public class BatchConfigParams
     /// Whether this set of batches is enabled or not
     /// </summary>
     [DefaultValue(true)]
-    public bool Enabled { get; set; }
+    public bool Enabled { get; set; } = true;
     
     /// <summary>
     /// Whether to store configuration on a server (e.g. for sequential filenames)
     /// </summary>
-    [DefaultValue(true)]
-    public bool UseConfigServer { get; set; }
+    [DefaultValue(false)]
+    public bool UseConfigServer { get; set; } = false;
     
     /// <summary>
     /// The configuration for the server storing the config information
     /// </summary>
-    [DefaultValue(null)]
+    [DefaultValue("")]
     [UIHint(nameof(UseConfigServer), "", true)]
     [DisplayFormat(DataFormatString = "Expression")]
-    public string ConfigServer { get; set; }
+    public string ConfigServer { get; set; } = "";
     
     /// <summary>
     /// The path on the server where the config information is stored (not automatically created)
     /// </summary>
-    [DefaultValue(null)]
+    [DefaultValue("")]
     [UIHint(nameof(UseConfigServer), "", true)]
-    public string ConfigPath { get; set; }
+    [DisplayFormat(DataFormatString = "Text")]
+    public string ConfigPath { get; set; } = "";
     
     /// <summary>
     /// Whether to backup the files copied from source to destination
     /// </summary>
     [DefaultValue(false)]
-    public bool BackupFiles { get; set; }
+    public bool BackupFiles { get; set; } = false;
 
     /// <summary>
     /// Backup files to a sub-folder in the source location
     /// </summary>
     [DefaultValue(false)]
     [UIHint(nameof(BackupFiles), "", true)]
-    public bool BackupToSubfolder { get; set; }
+    public bool BackupToSubfolder { get; set; } = false;
 
     /// <summary>
     /// Sub-folder name to use
     /// </summary>
     [DefaultValue("Archive")]
+    [DisplayFormat(DataFormatString = "Text")]
     [UIHint(nameof(BackupToSubfolder), "", true)]
-    public string SubfolderName { get; set; }
+    public string SubfolderName { get; set; } = "Archive";
 
     /// <summary>
     /// Whether to backup the files to the same server used for the configuration above
     /// </summary>
     [DefaultValue(true)]
     [UIHint(nameof(BackupFiles), "", true)]
-    public bool BackupToConfigServer { get; set; }
+    public bool BackupToConfigServer { get; set; } = true;
     
     /// <summary>
     /// The server to use for backing up the files
     /// </summary>
+    [DefaultValue("")]
     [UIHint(nameof(BackupToConfigServer), "", false)]
     [DisplayFormat(DataFormatString = "Expression")]
-    public string BackupServer { get; set; }
+    public string BackupServer { get; set; } = "";
     
     /// <summary>
     /// The path to use for backing up the files 
     /// </summary>
-    [DefaultValue(null)]
+    [DefaultValue("")]
     [UIHint(nameof(BackupFiles), "", true)]
-    public string BackupPath { get; set; }
+    [DisplayFormat(DataFormatString = "Text")]
+    public string BackupPath { get; set; } = "";
     
     /// <summary>
     /// The filename to set when backing up the files
@@ -696,7 +705,9 @@ public class BatchConfigParams
     /// </summary>
     [DefaultValue(null)]
     [UIHint(nameof(BackupFiles), "", true)]
-    public string BackupFilename { get; set; }
+    [DisplayFormat(DataFormatString = "Text")]
+    public string BackupFilename { get; set; } = "";
+    
     
     /// <summary>
     /// Get the parameters for the configuration server
@@ -751,16 +762,19 @@ public class BatchParams
     /// The GUID/Unique identifier for the batch item
     /// </summary>
     [DefaultValue("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")]
+    [DisplayFormat(DataFormatString = "Text")]
     public string ObjectGuid { get; set; }
     
     /// <summary>
     /// The source server configuration (JSON)
     /// </summary>
+    [DisplayFormat(DataFormatString = "Expression")]
     public string SourceServer { get; set; }
     
     /// <summary>
     /// The path on the source server to check
     /// </summary>
+    [DisplayFormat(DataFormatString = "Text")]
     public string SourcePath { get; set; }
     
     /// <summary>
@@ -771,7 +785,8 @@ public class BatchParams
     /// <summary>
     /// The pattern to apply on the files on the source server
     /// </summary>
-    public string SourceFilterPattern { get; set; }
+    [DisplayFormat(DataFormatString = "Text")]
+    public string SourceFilterPattern { get; set; } = "";
     
     /// <summary>
     /// The encoding to use when reading the file from the source server
@@ -781,17 +796,20 @@ public class BatchParams
     /// <summary>
     /// The configuration for the destination server (JSON)
     /// </summary>
+    [DisplayFormat(DataFormatString = "Expression")]
     public string DestinationServer { get; set; }
     
     /// <summary>
     /// The path on the destination server to copy the files to
     /// </summary>
+    [DisplayFormat(DataFormatString = "Text")]
     public string DestinationPath { get; set; }
     
     /// <summary>
     /// The filename to set for the files copied to the destination server
     /// Substitutions are available, check documentation
     /// </summary>
+    [DisplayFormat(DataFormatString = "Text")]
     public string DestinationFilename { get; set; }
     
     /// <summary>

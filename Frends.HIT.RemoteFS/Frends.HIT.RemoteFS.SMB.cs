@@ -43,7 +43,8 @@ public class SMB
     {
         List<string> res = new List<string>();
         var server = await Node.GetNode(Helpers.JoinPath("/", connection.Address, input.Path),
-            Helpers.GetSMBConnectionParams(connection)
+            Helpers.GetSMBConnectionParams(connection),
+            true
         );
 
         if (server == null)

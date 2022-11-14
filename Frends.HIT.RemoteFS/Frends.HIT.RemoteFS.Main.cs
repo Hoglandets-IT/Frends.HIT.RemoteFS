@@ -8,15 +8,8 @@ using System.Threading.Tasks;
 
 namespace Frends.HIT.RemoteFS;
 
-// ListFiles
-// ReadFile
-// WriteFile
-// MoveFile
-// BulkMoveFile
-
-
 /// <summary>
-/// 
+/// Main class for RemoteFS
 /// </summary>
 [DisplayName("RemoteFS")]
 public class Main

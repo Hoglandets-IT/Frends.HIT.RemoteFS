@@ -1,38 +1,11 @@
-﻿using System.Diagnostics;
-using Frends.HIT.RemoteFS;
+﻿using Frends.HIT.RemoteFS.Tests;
+
+var SMB = new SMBTest();
+await SMB.TestConvertToConnection();
+await SMB.TestList();
+// await SMB.TestRead();
+// await SMB.TestWrite();
+// await SMB.TestDelete();
 
 
-// var test = Main.RunExec();
-// Console.WriteLine("Helo");
-
-// using EzSmb;
-// using EzSmb.Paths;
-
-// string testServer = "";
-// string testDomain = "";
-// string testUser = "";
-// string testPassword = "";
-// string testShare = "";
-
-
-
-// var par = new ListParams();
-// par.Path = testShare;
-// par.Filter = FilterTypes.None;
-// par.Pattern = "";
-
-// var conn = new ServerConfiguration(
-//     connectiontype: ConnectionTypes.SMB, 
-//     address: testServer,
-//     domain: testDomain,
-//     username: testUser,
-//     password: testPassword,
-//     privatekey: "",
-//     privatekeypassword: "",
-//     fingerprint: ""
-// );
-
-// var files = await SMB.ListFiles(par, conn);
-// foreach (var fle in files) {
-//     Console.WriteLine(fle);
-// }
+Console.WriteLine("Tests passed!");
