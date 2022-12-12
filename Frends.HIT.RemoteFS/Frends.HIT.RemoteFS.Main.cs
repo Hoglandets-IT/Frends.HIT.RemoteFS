@@ -236,6 +236,7 @@ public class Main
         
         foreach (BatchParams param in input)
         {
+            System.Threading.Thread.Sleep(500);
             var sourceServer = param.GetSourceServerParams();
             var destinationServer = param.GetDestinationServerParams();
             
