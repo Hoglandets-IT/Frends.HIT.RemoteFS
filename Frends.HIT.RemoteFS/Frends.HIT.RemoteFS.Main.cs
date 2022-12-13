@@ -8,6 +8,44 @@ using System.Threading.Tasks;
 
 namespace Frends.HIT.RemoteFS;
 
+static class ConnectionCache
+{
+    private static Dictionary<string, SftpClient> _sftp = new Dictionary<string, SftpClient>();
+
+    public static SftpClient GetSFTPConnection(ServerConfiguration config)
+    {
+        string configString = SFTP.GetConnectionString(config);
+        if (_sftp.ContainsKey(configString))
+        {
+            return _sftp[configString];
+        }
+        else
+        {
+            var client = new SftpClient(Helpers.GetSFTPConnectionInfo(config));
+            // try
+            // {
+            //     Helpers.VerifyFingerprint(client, config.Fingerprint);
+            // }
+            // catch (Exception e)
+            // {
+            //     throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
+            // }
+            client.Connect();
+            _sftp.Add(configString, client);
+
+            return client;
+        }
+    }
+
+    public static void EndAll()
+    {
+        foreach (var client in _sftp.Values)
+        {
+            client.Disconnect();
+        }
+    }
+}
+
 /// <summary>
 /// Main class for RemoteFS
 /// </summary>
@@ -238,6 +276,7 @@ public class Main
         {
             System.Threading.Thread.Sleep(500);
             var sourceServer = param.GetSourceServerParams();
+            
             var destinationServer = param.GetDestinationServerParams();
             
             int incremental = 0;
@@ -517,6 +556,8 @@ public class Main
 
             }
         }
+
+        ConnectionCache.EndAll();
 
         return new BatchResults(
             count: results.Count,

@@ -7,6 +7,20 @@ namespace Frends.HIT.RemoteFS;
 
 public class SFTP
 {
+    public static string GetConnectionString(ServerConfiguration config)
+    {
+        return String.Join("|", new List<string>(){
+            config.ConnectionType.ToString(),
+            config.Address,
+            config.Domain,
+            config.Username,
+            config.Password,
+            config.PrivateKey,
+            config.PrivateKeyPassword,
+            config.Fingerprint
+        });
+    }
+
     public static async Task<dynamic> DoMethod(string action, object[] parameters)
     {
         switch (action)
@@ -36,21 +50,9 @@ public class SFTP
     /// <param name="connection">The connection details for the server</param>
     public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
-        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        using (var client = ConnectionCache.GetSFTPConnection(connection))
         {
-            try
-            {
-                Helpers.VerifyFingerprint(client, connection.Fingerprint);
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
-            }
-            
-            client.Connect();
-            var listing = client.ListDirectory(input.Path);
-            client.Disconnect();
-            return new List<string>(listing.Select(x => x.Name));
+            return new List<string>(client.ListDirectory(input.Path).Select(x => x.Name));
         }
     }
     
@@ -65,22 +67,9 @@ public class SFTP
 
         try
         {
-            using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+            using (var client = ConnectionCache.GetSFTPConnection(connection))
             {
-                try
-                {
-                    Helpers.VerifyFingerprint(client, connection.Fingerprint);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
-                }
-                
-                client.Connect();
-                var file = client.ReadAllBytes(path);
-                client.Disconnect();
-                
-                return file;
+                return client.ReadAllBytes(path);
             }
         }
         catch (Exception e)
@@ -98,20 +87,8 @@ public class SFTP
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
 
-        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
-        {
-            try
-            {
-                Helpers.VerifyFingerprint(client, connection.Fingerprint);
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
-            }
-            
-            // Connect to the server
-            client.Connect();
-            
+        using (var client = ConnectionCache.GetSFTPConnection(connection))
+        {   
             // Check if the file exists
             if (client.Exists(path))
             {
@@ -136,18 +113,8 @@ public class SFTP
     /// <param name="connection">The connection settings</param>
     public static async Task<bool> CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
-        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        using (var client = ConnectionCache.GetSFTPConnection(connection))
         {
-            try
-            {
-                Helpers.VerifyFingerprint(client, connection.Fingerprint);
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
-            }
-            
-            client.Connect();
             if (input.Recursive)
             {
                 List<string> tPath = new List<string>();
@@ -173,7 +140,6 @@ public class SFTP
             {
                 client.CreateDirectory(input.Path);
             }
-            client.Disconnect();
         }
 
         return true;
@@ -188,21 +154,9 @@ public class SFTP
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
 
-        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        using (var client = ConnectionCache.GetSFTPConnection(connection))
         {
-            try
-            {
-                Helpers.VerifyFingerprint(client, connection.Fingerprint);
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
-            }
-            
-            
-            client.Connect();
             client.Delete(path);
-            client.Disconnect();
         }
 
         return true;

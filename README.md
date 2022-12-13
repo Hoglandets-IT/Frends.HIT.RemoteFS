@@ -1,6 +1,10 @@
 # Frends.HIT.RemoteFS
 Task for Frends Integration Platform for managing files, directories on and transferring files between remote filesystems
 
+## Changelog
+### 0.6.1
+- Added global SFTP connection object to minimize amount of connections with rate limited servers
+
 ## Supported Remotes
 ### FTP
 ### SFTP
