@@ -17,6 +17,9 @@ static class ConnectionCache
         string configString = SFTP.GetConnectionString(config);
         if (_sftp.ContainsKey(configString))
         {
+            if (!_sftp[configString].IsConnected) {
+                _sftp[configString].Connect();
+            }
             return _sftp[configString];
         }
         else
