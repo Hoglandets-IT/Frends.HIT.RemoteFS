@@ -153,6 +153,12 @@ public enum FilterTypes
     None,
     
     /// <summary>
+    /// Doesn't filter the results from the directory listing
+    /// </summary>
+    [Display(Name = "Files Only (*.*)")]
+    FilesOnly,
+    
+    /// <summary>
     /// Matches the filename/extension exactly
     /// </summary>
     [Display(Name = "Match Exact")]
@@ -703,7 +709,7 @@ public class BatchConfigParams
     /// The filename to set when backing up the files
     /// All substitutions available in the batch configuration are available in the filename
     /// </summary>
-    [DefaultValue(null)]
+    [DefaultValue("{source_filename}.{source_extension}.bak")]
     [UIHint(nameof(BackupFiles), "", true)]
     [DisplayFormat(DataFormatString = "Text")]
     public string BackupFilename { get; set; } = "";
@@ -809,6 +815,7 @@ public class BatchParams
     /// The filename to set for the files copied to the destination server
     /// Substitutions are available, check documentation
     /// </summary>
+    [DefaultValue("{source_filename}.{source_extension}")]
     [DisplayFormat(DataFormatString = "Text")]
     public string DestinationFilename { get; set; }
     

@@ -11,6 +11,18 @@ namespace Frends.HIT.RemoteFS;
 class Helpers
 {
     /// <summary>
+    /// Remove all . and .. matches from a result
+    /// </summary>
+    /// <param name="input" />
+    /// <returns>List<string /></returns>
+    public static List<string> StripDirResults(List<string> input)
+    {
+        return input.Where(
+            x => (x != ".") && (x != "..")
+        ).ToList();
+    }
+
+    /// <summary>
     /// Get an exact match from a list of strings and a search input
     /// </summary>
     /// <param name="input"></param>
@@ -56,6 +68,17 @@ class Helpers
     }
 
     /// <summary>
+    /// Get only files (pattern *.*) from the listing
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="filter"></param>
+    /// <returns>List of strings</returns>
+    public static List<string> GetFilesOnly(List<string> input, string filter)
+    {
+        return GetRegexMatch(input, ".+\\..+");
+    }
+
+    /// <summary>
     /// Filter a list of strings according to a given filter type and filter
     /// </summary>
     /// <param name="input"></param>
@@ -64,19 +87,31 @@ class Helpers
     /// <returns>List of strings</returns>
     public static List<string> GetMatchingFiles(List<string> input, string filter, FilterTypes filterType)
     {
+        List<string> Result = new List<string>();
+
         switch (filterType)
         {
             case FilterTypes.Exact:
-                return GetExactMatch(input, filter);
+                Result = GetExactMatch(input, filter);
+                break;
             case FilterTypes.Contains:
-                return GetContainsMatch(input, filter);
+                Result = GetContainsMatch(input, filter);
+                break;
             case FilterTypes.Wildcard:
-                return GetWildcardMatch(input, filter);
+                Result = GetWildcardMatch(input, filter);
+                break;
             case FilterTypes.Regex:
-                return GetRegexMatch(input, filter);
+                Result = GetRegexMatch(input, filter);
+                break;
+            case FilterTypes.FilesOnly:
+                Result = GetFilesOnly(input, filter);
+                break;
             default:
-                return input;
+                Result = input;
+                break;
         }
+
+        return StripDirResults(Result);
     }
 
     /// <summary>
