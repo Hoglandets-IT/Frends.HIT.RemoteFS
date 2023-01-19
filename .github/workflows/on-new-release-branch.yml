@@ -18,6 +18,7 @@ jobs:
         incrementVersionWriteback: "false"
         buildConfiguration: "Release"
         includeSource: "true"
+        packageRelease: "true"
         packageReleaseName: ${{ github.ref_name }}
         packageReleaseBody: "README.md"
         packageReleaseFiles: |
