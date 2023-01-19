@@ -13,8 +13,8 @@ jobs:
       uses: hoglandets-it/gha-dotnet-builder@main
       with:
         buildShell: bash
-        buildVersion: VERSION
-        incrementVersion: patch
+        buildVersion: ${{ github.ref_name }}
+        incrementVersion: "false"
         incrementVersionWriteback: "false"
         buildConfiguration: "Release"
         includeSource: "true"
