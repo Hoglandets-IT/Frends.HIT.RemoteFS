@@ -1,9 +1,9 @@
 on:
   push:
-    paths: ['Frends.HIT.RemoteFS/**']
+    paths: ['Frends.HIT.RemoteFS/**', '.github/workflows/on-push-pullreq.yml']
     branches: ['main']
   pull_request:
-    paths: ['Frends.HIT.RemoteFS/**']
+    paths: ['Frends.HIT.RemoteFS/**', '.github/workflows/on-push-pullreq.yml']
     branches: ['main']
 
 jobs:
