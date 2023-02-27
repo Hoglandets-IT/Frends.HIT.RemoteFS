@@ -1,0 +1,28 @@
+﻿{
+  "Tasks": [
+    {
+      "TaskMethod": "Frends.HIT.RemoteFSDebug.Main.RunExec"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFSDebug.Main.ListFiles"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFSDebug.Main.ReadFile"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFSDebug.Main.WriteFile"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFSDebug.Main.DeleteFile"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFSDebug.Main.CreateDir"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFSDebug.Main.CopyFile"
+    },
+    {
+      "TaskMethod": "Frends.HIT.RemoteFSDebug.Main.BatchTransfer"
+    }
+  ]
+}
