@@ -44,7 +44,7 @@ static class ConnectionCache
     {
         foreach (var client in _sftp.Values)
         {
-            client.Disconnect();
+            //client.Disconnect();
         }
     }
 }
