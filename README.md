@@ -15,9 +15,11 @@ Task for Frends Integration Platform for managing files, directories on and tran
 ## Installation
 Download the package from the Releases section to the right, or from our Nuget server (API key required, contact us for more information, URLs and keys).
 
-## Server Configurations
-A server configuration object is required to be passed to the functions in the Frends.HIT.RemoteFS.Main namespace. The object contains the following properties:
 
+## Server Configuration
+Server configuration identifies the hostname/IP and account information for connecting to a specific server. For List, Read, Write, Delete and Create Folder there are two options while Batch Transfer requires the JSON Configuration to be placed in an environment variable.
+
+### Fields
 |Property|Type|Applies to|Example Value|Description|
 |---|---|---|---|---|
 |Address|string|All (Mandatory)|ftp.example.com:21|The address of the remote server, with optional port.|
@@ -28,14 +30,50 @@ A server configuration object is required to be passed to the functions in the F
 |PrivateKeyPassword|string|SFTP (Optional)|somepassword|The password to use for the private key.|
 |Fingerprint|string|SFTP (Optional)|RSA:.....|The fingerprint used to verify the remote host (currently unavailable)|
 
-This can either be passed via a JSON string/secret (e.g. from Environment vars), or directly entered into the field with Configuration Source = SFTP/SMB/FTP.
-
+### Json Format
+The JSON file contains all the fields above in lowercase with the addition of "connectiontype", for example:
 ```json
+
+# FTP
 {
-    "Address": "sftp.example.com:21",
-    "Username": "someusername",
-    "Password": "somepassword",
-    "PrivateKey": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
+    "connectiontype": "FTP",
+    "address": "someserver.com",
+    "username": "someuser",
+    "password": "somepassword"
+}
+
+# SFTP (Username/Password)
+{
+    "connectiontype": "SFTP",
+    "address": "someserver.com",
+    "username": "someuser",
+    "password": "somepassword"
+}
+
+# SFTP (Private Keyfile)
+{
+    "connectiontype": "SFTP",
+    "address": "someserver.com",
+    "username": "someuser",
+    "privatekey": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
+}
+
+# SMB (Domain-joined server/computer)
+{
+    "connectiontype": "SMB",
+    "address": "SOMESERVER.internal.domain.com",
+    "domain": "AD-DOMAIN",
+    "username": "someaduser",
+    "password": "somepassword"
+}
+
+# SMB (Not Domain-joined)
+{
+    "connectiontype": "SMB",
+    "address": "SOMESERVER.internal.domain.com",
+    "domain": "WORKGROUP",  # Or the server name (SERVERNAME)
+    "username": "someaduser",
+    "password": "somepassword"
 }
 ```
 ![](resources/images/serverconfig.png)
