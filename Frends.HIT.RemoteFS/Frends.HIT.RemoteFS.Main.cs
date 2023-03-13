@@ -12,14 +12,32 @@ static class ConnectionCache
 {
     private static Dictionary<string, SftpClient> _sftp = new Dictionary<string, SftpClient>();
 
-    public static SftpClient GetSFTPConnection(ServerConfiguration config)
+    public static SftpClient GetSFTPConnection(ServerConfiguration config, bool forceNew = false)
     {
+        if (forceNew) {
+            var client = new SftpClient(Helpers.GetSFTPConnectionInfo(config));
+            client.Connect();
+
+            if (_sftp.ContainsKey(configString)) {
+                _sftp[configString] = client;
+            }
+            else {
+                _sftp.Add(configString, client);
+            }
+
+            return client;
+        }
+
         string configString = SFTP.GetConnectionString(config);
         if (_sftp.ContainsKey(configString))
         {
-            if (!_sftp[configString].IsConnected) {
-                _sftp[configString].Connect();
+            try {
+                _sftp[configString].Connect()
             }
+            catch {}
+            // if (!_sftp[configString].IsConnected) {
+                // _sftp[configString].Connect();
+            // }
             return _sftp[configString];
         }
         else

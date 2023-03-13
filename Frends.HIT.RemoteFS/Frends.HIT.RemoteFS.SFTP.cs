@@ -102,8 +102,17 @@ public class SFTP
                 client.Delete(path);
             }
             
-            // Write to the file
-            client.WriteAllBytes(path, input.ByteContent);
+            try {
+                // Write to the file
+                client.WriteAllBytes(path, input.ByteContent);
+            }
+            catch {
+                // If connection fails for any reason, try creating a new connection
+                var brandNewClient = ConnectionCache.GetSFTPConnection(connection, true);
+                brandNewClient.WriteAllBytes(path, input.ByteContent);
+            }
+
+            
         // }
 
         return true;
