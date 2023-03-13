@@ -32,7 +32,7 @@ static class ConnectionCache
         if (_sftp.ContainsKey(configString))
         {
             try {
-                _sftp[configString].Connect()
+                _sftp[configString].Connect();
             }
             catch {}
             // if (!_sftp[configString].IsConnected) {
