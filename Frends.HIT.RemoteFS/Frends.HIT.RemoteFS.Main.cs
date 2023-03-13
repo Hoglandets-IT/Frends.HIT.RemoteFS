@@ -14,6 +14,8 @@ static class ConnectionCache
 
     public static SftpClient GetSFTPConnection(ServerConfiguration config, bool forceNew = false)
     {
+        string configString = SFTP.GetConnectionString(config);
+
         if (forceNew) {
             var client = new SftpClient(Helpers.GetSFTPConnectionInfo(config));
             client.Connect();
@@ -28,7 +30,6 @@ static class ConnectionCache
             return client;
         }
 
-        string configString = SFTP.GetConnectionString(config);
         if (_sftp.ContainsKey(configString))
         {
             try {
