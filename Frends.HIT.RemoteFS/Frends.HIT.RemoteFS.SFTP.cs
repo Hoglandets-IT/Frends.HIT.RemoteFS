@@ -52,7 +52,10 @@ public class SFTP
     {
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
-            return new List<string>(client.ListDirectory(input.Path).Select(x => x.Name));
+            client.Connect();
+            var listing = new List<string>(client.ListDirectory(input.Path).Select(x => x.Name));
+            client.Disconnect();
+            return listing;
         }
     }
     
@@ -69,7 +72,10 @@ public class SFTP
         {
             using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
             {
-                return client.ReadAllBytes(path);
+                client.Connect();
+                var result = client.ReadAllBytes(path);
+                client.Disconnect();
+                return result;
             }
         }
         catch (Exception e)
@@ -89,11 +95,13 @@ public class SFTP
 
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {   
+            client.Connect();
             // Check if the file exists
             if (client.Exists(path))
             {
                 if (!input.Overwrite)
                 {
+                    client.Disconnect();
                     throw new Exception($"File at path {path} already exists");
                 }
                 client.Delete(path);
@@ -101,6 +109,7 @@ public class SFTP
             
             // Write to the file
             client.WriteAllBytes(path, input.ByteContent);
+            client.Disconnect();
         }
 
         return true;
@@ -115,6 +124,7 @@ public class SFTP
     {
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
+            client.Connect();
             if (input.Recursive)
             {
                 List<string> tPath = new List<string>();
@@ -127,6 +137,7 @@ public class SFTP
                         SftpFileAttributes attrs = client.GetAttributes(string.Join('/', tPath));
                         if (!attrs.IsDirectory)
                         {
+                            client.Disconnect();
                             throw new Exception("There is a file in the way of creating these directories");
                         }
                     }
@@ -140,6 +151,7 @@ public class SFTP
             {
                 client.CreateDirectory(input.Path);
             }
+            client.Disconnect();
         }
 
         return true;
@@ -156,7 +168,9 @@ public class SFTP
 
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
+            client.Connect();
             client.Delete(path);
+            client.Disconnect();
         }
 
         return true;
