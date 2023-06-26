@@ -8,66 +8,6 @@ using System.Threading.Tasks;
 
 namespace Frends.HIT.RemoteFS;
 
-static class ConnectionCache
-{
-    private static Dictionary<string, SftpClient> _sftp = new Dictionary<string, SftpClient>();
-
-    public static SftpClient GetSFTPConnection(ServerConfiguration config, bool forceNew = false)
-    {
-        string configString = SFTP.GetConnectionString(config);
-
-        if (forceNew) {
-            var client = new SftpClient(Helpers.GetSFTPConnectionInfo(config));
-            client.Connect();
-
-            if (_sftp.ContainsKey(configString)) {
-                _sftp[configString] = client;
-            }
-            else {
-                _sftp.Add(configString, client);
-            }
-
-            return client;
-        }
-
-        if (_sftp.ContainsKey(configString))
-        {
-            try {
-                _sftp[configString].Connect();
-            }
-            catch {}
-            // if (!_sftp[configString].IsConnected) {
-                // _sftp[configString].Connect();
-            // }
-            return _sftp[configString];
-        }
-        else
-        {
-            var client = new SftpClient(Helpers.GetSFTPConnectionInfo(config));
-            // try
-            // {
-            //     Helpers.VerifyFingerprint(client, config.Fingerprint);
-            // }
-            // catch (Exception e)
-            // {
-            //     throw new Exception("Fingerprint verification failed: Did not match the provided fingerprint", e);
-            // }
-            client.Connect();
-            _sftp.Add(configString, client);
-
-            return client;
-        }
-    }
-
-    public static void EndAll()
-    {
-        foreach (var client in _sftp.Values)
-        {
-            //client.Disconnect();
-        }
-    }
-}
-
 /// <summary>
 /// Main class for RemoteFS
 /// </summary>
@@ -578,8 +518,6 @@ public class Main
 
             }
         }
-
-        ConnectionCache.EndAll();
 
         return new BatchResults(
             count: results.Count,

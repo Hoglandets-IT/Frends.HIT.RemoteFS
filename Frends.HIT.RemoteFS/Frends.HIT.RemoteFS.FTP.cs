@@ -12,10 +12,8 @@ public class FTP
         {
             case "ListFiles":
                 return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
             case "ReadFile":
                 return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
             case "WriteFile":
                 await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
                 break;

@@ -50,11 +50,10 @@ public class SFTP
     /// <param name="connection">The connection details for the server</param>
     public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
-        // using (var client = ConnectionCache.GetSFTPConnection(connection))
-        // {
-            var client = ConnectionCache.GetSFTPConnection(connection);
+        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        {
             return new List<string>(client.ListDirectory(input.Path).Select(x => x.Name));
-        // }
+        }
     }
     
     /// <summary>
@@ -68,11 +67,10 @@ public class SFTP
 
         try
         {
-            // using (var client = ConnectionCache.GetSFTPConnection(connection))
-            // {
-                var client = ConnectionCache.GetSFTPConnection(connection);
+            using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+            {
                 return client.ReadAllBytes(path);
-            // }
+            }
         }
         catch (Exception e)
         {
@@ -89,9 +87,8 @@ public class SFTP
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
 
-        // using (var client = ConnectionCache.GetSFTPConnection(connection))
-        // {   
-            var client = ConnectionCache.GetSFTPConnection(connection);
+        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        {   
             // Check if the file exists
             if (client.Exists(path))
             {
@@ -102,18 +99,9 @@ public class SFTP
                 client.Delete(path);
             }
             
-            try {
-                // Write to the file
-                client.WriteAllBytes(path, input.ByteContent);
-            }
-            catch {
-                // If connection fails for any reason, try creating a new connection
-                var brandNewClient = ConnectionCache.GetSFTPConnection(connection, true);
-                brandNewClient.WriteAllBytes(path, input.ByteContent);
-            }
-
-            
-        // }
+            // Write to the file
+            client.WriteAllBytes(path, input.ByteContent);
+        }
 
         return true;
     }
@@ -125,9 +113,8 @@ public class SFTP
     /// <param name="connection">The connection settings</param>
     public static async Task<bool> CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
-        // using (var client = ConnectionCache.GetSFTPConnection(connection))
-        // {
-            var client = ConnectionCache.GetSFTPConnection(connection);
+        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        {
             if (input.Recursive)
             {
                 List<string> tPath = new List<string>();
@@ -153,7 +140,7 @@ public class SFTP
             {
                 client.CreateDirectory(input.Path);
             }
-        // }
+        }
 
         return true;
     }
@@ -167,11 +154,10 @@ public class SFTP
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
 
-        // using (var client = ConnectionCache.GetSFTPConnection(connection))
-        // {
-            var client = ConnectionCache.GetSFTPConnection(connection);
+        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        {
             client.Delete(path);
-        // }
+        }
 
         return true;
     }

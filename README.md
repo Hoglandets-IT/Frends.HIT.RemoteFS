@@ -2,6 +2,8 @@
 Task for Frends Integration Platform for managing files, directories on and transferring files between remote filesystems
 
 ## Changelog
+### 0.8.1
+- Removed connection cache due to issues with concurrent integration runs
 ### 0.6.1
 - Added global SFTP connection object to minimize amount of connections with rate limited servers
 
