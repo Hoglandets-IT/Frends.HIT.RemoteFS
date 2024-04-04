@@ -7,6 +7,7 @@ using Renci.SshNet;
 using System.Threading.Tasks;
 
 namespace Frends.HIT.RemoteFS;
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 
 /// <summary>
 /// Main class for RemoteFS
@@ -14,6 +15,12 @@ namespace Frends.HIT.RemoteFS;
 [DisplayName("RemoteFS")]
 public class Main
 {
+    /// <summary>
+    /// Run an executable on the Frends agent server
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="args"></param>
+    /// <returns></returns>
     [DisplayName("Run Executable")]
     public static string RunExec(string command, string args)
     {
@@ -42,6 +49,12 @@ public class Main
         }
     }
 
+    /// <summary>
+    /// List files in a directory on a remote filesystem
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="connection"></param>
+    /// <returns></returns>
     [DisplayName("List Files")]
     public static async Task<ListResult> ListFiles([PropertyTab] ListParams input, [PropertyTab] ServerParams connection)
     {
@@ -64,6 +77,10 @@ public class Main
             case ConnectionTypes.FTP:
                 files = await FTP.ListFiles(input, serverConfiguration);
                 break;
+            
+            case ConnectionTypes.PulsenCombine:
+                files = await PulsenCombine.ListFiles(input, serverConfiguration);
+                break;
         }
         
         files = Helpers.GetMatchingFiles(files, input.Pattern, input.Filter);
@@ -74,6 +91,12 @@ public class Main
         );
     }
 
+    /// <summary>
+    /// Read a file on a remote filesystem
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="connection"></param>
+    /// <returns></returns>
     [DisplayName("Read File")]
     public static async Task<ReadResult> ReadFile([PropertyTab] ReadParams input, [PropertyTab] ServerParams connection)
     {
@@ -93,6 +116,9 @@ public class Main
                 break;
             case ConnectionTypes.FTP:
                 content = await FTP.ReadFile(input, serverConfiguration);
+                break;
+            case ConnectionTypes.PulsenCombine:
+                content = await PulsenCombine.ReadFile(input, serverConfiguration);
                 break;
         }
         
@@ -135,11 +161,20 @@ public class Main
             case ConnectionTypes.FTP:
                 await FTP.WriteFile(input, serverConfiguration);
                 break;
+            case ConnectionTypes.PulsenCombine:
+                await PulsenCombine.WriteFile(input, serverConfiguration);
+                break;
         }
         
         return new WriteResult(true, string.Join("/", input.Path, input.File), input.Encoding);
     }
 
+    /// <summary>
+    /// Create a directory on the remote filesystem
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="connection"></param>
+    /// <returns></returns> <summary>
     [DisplayName("Create Directory")]
     public static async Task<CreateDirResult> CreateDir([PropertyTab] CreateDirParams input, [PropertyTab] ServerParams connection)
     {
@@ -160,6 +195,10 @@ public class Main
             
             case ConnectionTypes.FTP:
                 await FTP.CreateDir(input, serverConfiguration);
+                break;
+            
+            case ConnectionTypes.PulsenCombine:
+                await PulsenCombine.CreateDir(input, serverConfiguration);
                 break;
         }
         
@@ -189,6 +228,10 @@ public class Main
                 case ConnectionTypes.FTP:
                     await FTP.DeleteFile(input, serverConfiguration);
                     break;
+                
+                case ConnectionTypes.PulsenCombine:
+                    await PulsenCombine.DeleteFile(input, serverConfiguration);
+                    break;
             }
         }
         catch (System.NullReferenceException)
@@ -201,6 +244,14 @@ public class Main
         return new DeleteResult(succ, string.Join("/", input.Path, input.File));
     }
 
+    /// <summary>
+    /// Copy a file between two remote filesystems
+    /// </summary>
+    /// <param name="sourceInput"></param>
+    /// <param name="sourceConnection"></param>
+    /// <param name="destinationInput"></param>
+    /// <param name="destinationConnection"></param>
+    /// <returns></returns>
     [DisplayName("Copy File")]
     public static async Task<CopyResult> CopyFile(
         [PropertyTab] ReadParams sourceInput,
@@ -221,6 +272,12 @@ public class Main
         return new CopyResult(true);
     }
 
+    /// <summary>
+    /// Transfer multiple files between remote filesystems
+    /// </summary>
+    /// <param name="config"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
     [DisplayName("Batch Transfer")]
     public static async Task<BatchResults> BatchTransfer(
         [PropertyTab] BatchConfigParams config,

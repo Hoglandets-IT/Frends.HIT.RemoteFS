@@ -102,7 +102,13 @@ public enum ConnectionTypes
     /// Local Storage (On agent server/in agent pod)
     /// </summary>
     [Display(Name = "Local Storage")]
-    LocalStorage
+    LocalStorage,
+
+    /// <summary>
+    /// Pulsen Combine
+    /// </summary>
+    [Display(Name = "Pulsen Combine")]
+    PulsenCombine
 }
 
 /// <summary>
@@ -138,7 +144,13 @@ public enum ConfigurationType
     /// Manual Config - Local Storage
     /// </summary>
     [Display(Name = "Local Storage")]
-    LocalStorage
+    LocalStorage,
+
+     /// <summary>
+    /// Manual Config - Pulsen Combine
+    /// </summary>
+    [Display(Name = "Pulsen Combine")]
+    PulsenCombine
 }
 
 /// <summary>
@@ -201,7 +213,7 @@ public class ServerConfiguration
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
     [Display(Name = "Hostname/IP Address")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP)]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP, ConnectionTypes.PulsenCombine)]
     public string Address { get; set; }
 
     /// <summary>
@@ -229,18 +241,26 @@ public class ServerConfiguration
     public string Password { get; set; }
 
     /// <summary>
+    /// The Certificate used for Mutual TLS Authentication
+    /// </summary>
+    [DefaultValue("")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.PulsenCombine)]
+    [Display(Name = "Certificate")]
+    public string Certificate { get; set; }
+    
+    /// <summary>
     /// The PrivateKey used for connecting to the remote SFTP server
     /// </summary>
     [DefaultValue("")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP)]
-    [Display(Name = "OpenSSH Private Key")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP, ConnectionTypes.PulsenCombine)]
+    [Display(Name = "Private Key")]
     public string PrivateKey { get; set; }
     
     /// <summary>
     /// (optional) The password for the private key above
     /// </summary>
     [DefaultValue("")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP)]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP, ConnectionTypes.PulsenCombine)]
     [Display(Name = "Private Key Password/Passphrase")]
     public string PrivateKeyPassword { get; set; }
     
@@ -260,7 +280,8 @@ public class ServerConfiguration
     /// <param name="domain">The domain for the server (SMB only)</param>
     /// <param name="username">The username for the connection</param>
     /// <param name="password">The password for the connection</param>
-    /// <param name="privatekey">The private key used for the connection (string, SFTP only, optional)</param>
+    /// <param name="certificate">The certificate used for connecting to Pulsen Combine (string, PulsenCombine only)</param>
+    /// <param name="privatekey">The private key used for the connection (string, SFTP and PulsenCombine only, optional)</param>
     /// <param name="privatekeypassword">The password for the private key used for the connection (string, SFTP only, optional)</param>
     /// <param name="fingerprint">The remote fingerprint for verification (string, SFTP only, optional)</param>
     public ServerConfiguration(
@@ -269,6 +290,7 @@ public class ServerConfiguration
         string domain,
         string username,
         string password, 
+        string certificate,
         string privatekey,
         string privatekeypassword,
         string fingerprint
@@ -279,6 +301,7 @@ public class ServerConfiguration
         Domain = domain;
         Username = username;
         Password = password;
+        Certificate = certificate;
         PrivateKey = privatekey;
         PrivateKeyPassword = privatekeypassword;
         Fingerprint = fingerprint;
@@ -292,6 +315,7 @@ public class ServerConfiguration
     /// <param name="domain">The domain for the server (SMB only)</param>
     /// <param name="username">The username for the connection</param>
     /// <param name="password">The password for the connection</param>
+    /// <param name="certificate">The certificate used for connecting to Pulsen Combine (string, PulsenCombine only)</param>
     /// <param name="privatekey">The private key used for the connection (string, SFTP only, optional)</param>
     /// <param name="privatekeypassword">The password for the private key used for the connection (string, SFTP only, optional)</param>
     /// <param name="fingerprint">The remote fingerprint for verification (string, SFTP only, optional)</param>
@@ -302,6 +326,7 @@ public class ServerConfiguration
         string domain,
         string username,
         string password,
+        string certificate,
         string privatekey,
         string privatekeypassword,
         string fingerprint
@@ -317,6 +342,7 @@ public class ServerConfiguration
         Domain = domain;
         Username = username;
         Password = password;
+        Certificate = certificate;
         PrivateKey = privatekey;
         PrivateKeyPassword = privatekeypassword;
         Fingerprint = fingerprint;
@@ -387,10 +413,18 @@ public class ServerParams
     public string Password { get; set; } = "";
 
     /// <summary>
-    /// The PrivateKey used for connecting to the remote SFTP server
+    /// The Certificate used for connecting to PulsenCombine
     /// </summary>
-    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP)]
-    [Display(Name = "OpenSSH Private Key")]
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.PulsenCombine)]
+    [Display(Name = "mTLS Certificate")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string Certificate { get; set; } = "";
+    
+    /// <summary>
+    /// The PrivateKey used for connecting to the remote SFTP server or PulsenCombine
+    /// </summary>
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP, ConfigurationType.PulsenCombine)]
+    [Display(Name = "Private Key")]
     [DisplayFormat(DataFormatString = "Text")]
     public string PrivateKey { get; set; } = "";
     
@@ -427,6 +461,7 @@ public class ServerParams
             domain: Domain,
             username: Username,
             password: Password,
+            certificate: Certificate,
             privatekey: PrivateKey,
             privatekeypassword: PrivateKeyPassword,
             fingerprint: Fingerprint

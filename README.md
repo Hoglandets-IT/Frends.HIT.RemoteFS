@@ -24,11 +24,12 @@ Server configuration identifies the hostname/IP and account information for conn
 ### Fields
 |Property|Type|Applies to|Example Value|Description|
 |---|---|---|---|---|
-|Address|string|All (Mandatory)|ftp.example.com:21|The address of the remote server, with optional port.|
+|Address|string|All (Mandatory)|ftp.example.com:21, sftp.example.com, integrations.pulsencombine-a.se|The address of the remote server, with optional port.|
 |Username|string|All (Mandatory)|someusername|The username to use when connecting to the remote server.|
 |Password|string|All (Optional)|somepassword|The password to use when connecting to the remote server. Can be omitted if using Anonymous for FTP or Private key authentication for SFTP.|
 |Domain|string|SMB (Optional)|WORKGROUP|The domain to use for the user account specified under Username.|
-|PrivateKey|string|SFTP (Optional)|-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----|The private key to use for authentication.|
+|Certificate|string|PulsenCombine (Mandatory)|-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----|The certificate to use for authentication to PulsenCombine/Web.|
+|PrivateKey|string|SFTP (Optional), PulsenCombine (Mandatory)|-----BEGIN *** PRIVATE KEY-----\n...\n-----END *** PRIVATE KEY-----|The private key to use for authentication.|
 |PrivateKeyPassword|string|SFTP (Optional)|somepassword|The password to use for the private key.|
 |Fingerprint|string|SFTP (Optional)|RSA:.....|The fingerprint used to verify the remote host (currently unavailable)|
 
