@@ -445,6 +445,18 @@ public class ServerParams
     public string Fingerprint { get; set; } = "";
 
     /// <summary>
+    /// Amount of retries to do before throwing an error
+    /// </summary>
+    [Display(Name = "Retries")]
+    [DefaultValue(0)]
+    public int Retries { get; set; } = 0;
+
+    /// <summary>
+    /// (optional) seconds between retry attempts
+    /// </summary>
+    public int RetryTimeout { get; set; } = 60;
+
+    /// <summary>
     /// Get the server configuration object from the parameters
     /// </summary>
     /// <returns>ServerConfiguration</returns>

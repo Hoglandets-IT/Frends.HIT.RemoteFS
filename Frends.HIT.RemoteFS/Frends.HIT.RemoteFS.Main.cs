@@ -61,27 +61,42 @@ public class Main
         List<string> files = new List<string>();
         var serverConfiguration = connection.GetServerConfiguration();
         
-        switch (serverConfiguration.ConnectionType)
-        {
-            case ConnectionTypes.SMB:
-                files = await SMB.ListFiles(input, serverConfiguration);
-                break;
-            case ConnectionTypes.SFTP:
-                files = await SFTP.ListFiles(input, serverConfiguration);
-                break;
-            
-            case ConnectionTypes.LocalStorage:
-                files = await LocalStorage.ListFiles(input, serverConfiguration);
-                break;
-            
-            case ConnectionTypes.FTP:
-                files = await FTP.ListFiles(input, serverConfiguration);
-                break;
-            
-            case ConnectionTypes.PulsenCombine:
-                files = await PulsenCombine.ListFiles(input, serverConfiguration);
-                break;
+        var retryAmount = 0;
+
+        while (retryAmount <= connection.Retries) {
+            try {
+                switch (serverConfiguration.ConnectionType)
+                {
+                    case ConnectionTypes.SMB:
+                        files = await SMB.ListFiles(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.SFTP:
+                        files = await SFTP.ListFiles(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.LocalStorage:
+                        files = await LocalStorage.ListFiles(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.FTP:
+                        files = await FTP.ListFiles(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.PulsenCombine:
+                        files = await PulsenCombine.ListFiles(input, serverConfiguration);
+                        break;
+                }
+            }
+            catch (Exception ex) {
+                if (retryAmount >= connection.Retries) {
+                    throw ex;
+                }
+                else {
+                    retryAmount++;
+                }
+            } 
         }
+        
         
         files = Helpers.GetMatchingFiles(files, input.Pattern, input.Filter);
         
@@ -102,25 +117,39 @@ public class Main
     {
         var serverConfiguration = connection.GetServerConfiguration();
         byte[] content = null;
-        
-        switch (serverConfiguration.ConnectionType)
-        {
-            case ConnectionTypes.SMB:
-                content = await SMB.ReadFile(input, serverConfiguration);
-                break;
-            case ConnectionTypes.SFTP:
-                content = await SFTP.ReadFile(input, serverConfiguration);
-                break; 
-            case ConnectionTypes.LocalStorage:
-                content = await LocalStorage.ReadFile(input, serverConfiguration);
-                break;
-            case ConnectionTypes.FTP:
-                content = await FTP.ReadFile(input, serverConfiguration);
-                break;
-            case ConnectionTypes.PulsenCombine:
-                content = await PulsenCombine.ReadFile(input, serverConfiguration);
-                break;
+        var retryAmount = 0;
+
+        while (retryAmount <= connection.Retries) {
+            try {
+                switch (serverConfiguration.ConnectionType)
+                {
+                    case ConnectionTypes.SMB:
+                        content = await SMB.ReadFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.SFTP:
+                        content = await SFTP.ReadFile(input, serverConfiguration);
+                        break; 
+                    case ConnectionTypes.LocalStorage:
+                        content = await LocalStorage.ReadFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.FTP:
+                        content = await FTP.ReadFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.PulsenCombine:
+                        content = await PulsenCombine.ReadFile(input, serverConfiguration);
+                        break;
+                }
+            }
+            catch (Exception ex) {
+                if (retryAmount >= connection.Retries) {
+                    throw ex;
+                }
+                else {
+                    retryAmount++;
+                }
+            } 
         }
+        
         
         string encoded = "";
         if (input.Encoding != FileEncodings.RAW) {
@@ -146,25 +175,39 @@ public class Main
             Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
             input.ByteContent = encType.GetBytes(input.Content);
         }
+        var retryAmount = 0;
 
-        switch (serverConfiguration.ConnectionType)
-        {
-            case ConnectionTypes.SMB:
-                await SMB.WriteFile(input, serverConfiguration);
-                break;
-            case ConnectionTypes.SFTP:
-                await SFTP.WriteFile(input, serverConfiguration);
-                break;
-            case ConnectionTypes.LocalStorage:
-                await LocalStorage.WriteFile(input, serverConfiguration);
-                break;
-            case ConnectionTypes.FTP:
-                await FTP.WriteFile(input, serverConfiguration);
-                break;
-            case ConnectionTypes.PulsenCombine:
-                await PulsenCombine.WriteFile(input, serverConfiguration);
-                break;
+        while (retryAmount <= connection.Retries) {
+            try {
+                switch (serverConfiguration.ConnectionType)
+                {
+                    case ConnectionTypes.SMB:
+                        await SMB.WriteFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.SFTP:
+                        await SFTP.WriteFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.LocalStorage:
+                        await LocalStorage.WriteFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.FTP:
+                        await FTP.WriteFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.PulsenCombine:
+                        await PulsenCombine.WriteFile(input, serverConfiguration);
+                        break;
+                }
+            }
+            catch (Exception ex) {
+                if (retryAmount >= connection.Retries) {
+                    throw ex;
+                }
+                else {
+                    retryAmount++;
+                }
+            } 
         }
+        
         
         return new WriteResult(true, string.Join("/", input.Path, input.File), input.Encoding);
     }
@@ -180,27 +223,42 @@ public class Main
     {
         var serverConfiguration = connection.GetServerConfiguration();
         
-        switch (serverConfiguration.ConnectionType)
-        {
-            case ConnectionTypes.SMB:
-                await SMB.CreateDir(input, serverConfiguration);
-                break;
-            case ConnectionTypes.SFTP:
-                await SFTP.CreateDir(input, serverConfiguration);
-                break;
-            
-            case ConnectionTypes.LocalStorage:
-                await LocalStorage.CreateDir(input, serverConfiguration);
-                break;
-            
-            case ConnectionTypes.FTP:
-                await FTP.CreateDir(input, serverConfiguration);
-                break;
-            
-            case ConnectionTypes.PulsenCombine:
-                await PulsenCombine.CreateDir(input, serverConfiguration);
-                break;
+        var retryAmount = 0;
+
+        while (retryAmount <= connection.Retries) {
+            try {
+                switch (serverConfiguration.ConnectionType)
+                {
+                    case ConnectionTypes.SMB:
+                        await SMB.CreateDir(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.SFTP:
+                        await SFTP.CreateDir(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.LocalStorage:
+                        await LocalStorage.CreateDir(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.FTP:
+                        await FTP.CreateDir(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.PulsenCombine:
+                        await PulsenCombine.CreateDir(input, serverConfiguration);
+                        break;
+                }
+            }
+            catch (Exception ex) {
+                if (retryAmount >= connection.Retries) {
+                    throw ex;
+                }
+                else {
+                    retryAmount++;
+                }
+            } 
         }
+        
         
         return new CreateDirResult(true);
     }
@@ -212,27 +270,42 @@ public class Main
         bool succ = true;
         try
         {
-            switch (serverConfiguration.ConnectionType)
-            {
-                case ConnectionTypes.SMB:
-                    await SMB.DeleteFile(input, serverConfiguration);
-                    break;
-                case ConnectionTypes.SFTP:
-                    await SFTP.DeleteFile(input, serverConfiguration);
-                    break;
+            var retryAmount = 0;
 
-                case ConnectionTypes.LocalStorage:
-                    await LocalStorage.DeleteFile(input, serverConfiguration);
-                    break;
+        while (retryAmount <= connection.Retries) {
+            try {
+                switch (serverConfiguration.ConnectionType)
+                {
+                    case ConnectionTypes.SMB:
+                        await SMB.DeleteFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.SFTP:
+                        await SFTP.DeleteFile(input, serverConfiguration);
+                        break;
 
-                case ConnectionTypes.FTP:
-                    await FTP.DeleteFile(input, serverConfiguration);
-                    break;
-                
-                case ConnectionTypes.PulsenCombine:
-                    await PulsenCombine.DeleteFile(input, serverConfiguration);
-                    break;
+                    case ConnectionTypes.LocalStorage:
+                        await LocalStorage.DeleteFile(input, serverConfiguration);
+                        break;
+
+                    case ConnectionTypes.FTP:
+                        await FTP.DeleteFile(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.PulsenCombine:
+                        await PulsenCombine.DeleteFile(input, serverConfiguration);
+                        break;
+                }
             }
+            catch (Exception ex) {
+                if (retryAmount >= connection.Retries) {
+                    throw ex;
+                }
+                else {
+                    retryAmount++;
+                }
+            } 
+        }
+            
         }
         catch (System.NullReferenceException)
         {
