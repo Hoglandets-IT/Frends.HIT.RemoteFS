@@ -2,6 +2,8 @@
 Task for Frends Integration Platform for managing files, directories on and transferring files between remote filesystems
 
 ## Changelog
+### 0.9.1
+- Added the option to retrieve files from Pulsencombine (e.g. financialfiles/generalledger)
 ### 0.8.1
 - Removed connection cache due to issues with concurrent integration runs
 ### 0.6.1
