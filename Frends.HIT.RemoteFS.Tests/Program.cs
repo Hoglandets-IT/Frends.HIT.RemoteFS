@@ -4,14 +4,16 @@ using Renci.SshNet.Security;
 using SMBLibrary.SMB2;
 
 var serverParams = new ServerParams(){
-    ConfigurationSource = ConfigurationType.PulsenCombine,
-    Address = "integrations.pulsencombine-a.se",
-    Certificate = "",
-    PrivateKey = "",
+    ConfigurationSource = ConfigurationType.SFTP,
+    Address = "ftp.hoglandet.se",
+    Username = "hoglandet",
+    Password = "testfail",
+    Retries = 3,
+    RetryTimeout = 5
 };
 
 var allf = new ListParams(){
-    Path = "financialfiles/generalledger",
+    Path = "financialfilez/generalledger",
     Filter = FilterTypes.None,
     Pattern = ""
 };
@@ -22,7 +24,7 @@ Console.WriteLine(String.Join(", ", filelist.Files));
 var filezero = filelist.Files[0];
 
 var rpar = new ReadParams(){
-    Path = "financialfiles/generalledger",
+    Path = "financialfilez/generalledger",
     File = filezero
 };
 
