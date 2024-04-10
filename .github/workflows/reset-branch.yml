@@ -1,0 +1,26 @@
+on:
+  push:
+    branches: ["reset"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.x
+      
+      - name: Build and Pack
+        run: |
+          dotnet restore ${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj
+          dotnet build --configuration Release ${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj /p:Version=0.10.1
+          dotnet pack --configuration Release ${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj --include-source /p:Version=0.10.1
+          dotnet nuget add source --name hit-registry --store-password-in-clear-text --username ${{ secrets.FRENDS_NUGET_V2_FEED_USER }} --password "${{ secrets.FRENDS_NUGET_V2_FEED_KEY }}" ${{ secrets.FRENDS_NUGET_V2_FEED_URL }}
+          dotnet nuget push --source hit-registry ${{ github.event.repository.name }}/bin/Release/${{ github.event.repository.name }}.*.nupkg --skip-duplicate
