@@ -121,6 +121,12 @@ public enum ConfigurationType
     /// </summary>
     [Display(Name = "JSON String")]
     Json,
+
+    /// <summary>
+    /// From a path in Hashicorp Vault
+    /// </summary>
+    [Display(Name = "Hashicorp Vault")]
+    HcpVault,
     
     /// <summary>
     /// Manual Config - SMB/CIFS
@@ -371,6 +377,12 @@ public class ServerParams
     [DefaultValue(ConfigurationType.Json)]
     public ConfigurationType ConfigurationSource { get; set; }
 
+    [DefaultValue("")]
+    [DisplayFormat(DataFormatString = "Text")]
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.HcpVault)]
+    [Display(Name = "Vault Path")]
+    public string VaultPath { get; set; } = "";
+    
     /// <summary>
     /// The server configuration in Json format
     /// </summary>
@@ -462,7 +474,11 @@ public class ServerParams
     /// <returns>ServerConfiguration</returns>
     public ServerConfiguration GetServerConfiguration()
     {
-        if (ConfigurationSource == ConfigurationType.Json)
+        if (ConfigurationSource == ConfigurationType.HcpVault) {
+            JsonConfiguration = Helpers.GetVaultSecret(VaultPath);
+        }
+
+        if (ConfigurationSource == ConfigurationType.Json || ConfigurationSource == ConfigurationType.HcpVault)
         {
             return JsonConvert.DeserializeObject<ServerConfiguration>(JsonConfiguration);
         }
@@ -494,6 +510,13 @@ public class ListParams
     [DefaultValue(null)]
     [DisplayFormat(DataFormatString = "Text")]
     public string Path { get; set; }
+
+    /// <summary>
+    /// Whether to return a list of all files, directories or both
+    /// </summary>
+    /// <value></value>
+    [DefaultValue(ObjectTypes.Files)]
+    public ObjectTypes ListType { get; set; } = ObjectTypes.Files;
     
     /// <summary>
     /// Choose whether and how to filter the results of the listing
@@ -508,6 +531,36 @@ public class ListParams
     [DisplayFormat(DataFormatString = "Text")]
     public string Pattern { get; set; } = "";
 }
+
+/// <summary>
+/// Parameters to use for recursive listing of directories
+/// </summary>
+[DisplayName("Recursive List Parameters")]
+public class RecursiveListParams
+{
+    /// <summary>
+    /// The maximum amount of recurion levels the integration will go through
+    /// </summary>
+    /// <value></value>
+    [DefaultValue(2)]
+    public int Depth { get; set; } = 2;
+
+    /// <summary>
+    /// Whether the integration should stop on the first match, or list all items
+    /// </summary>
+    /// <value></value>
+    [DefaultValue(false)]
+    public bool StopOnFirst { get; set; } = false;
+
+    /// <summary>
+    /// A list of folders to exclude, e.g. "Test" or "Test/NestedTest"
+    /// </summary>
+    /// <value></value>
+    [DefaultValue(null)]
+    public string[] Exclude { get; set; } = new string[]{};
+}
+
+
 
 /// <summary>
 /// Parameters for reading file contents on a remote server
@@ -821,8 +874,17 @@ public class BatchParams
     /// <summary>
     /// The source server configuration (JSON)
     /// </summary>
+    [UIHint(nameof(SourceServerVaultRef), "", false, null, "")]
     [DisplayFormat(DataFormatString = "Expression")]
     public string SourceServer { get; set; }
+    
+    /// <summary>
+    /// The source server configuration path in Hashicorp Vault
+    /// </summary>
+    [DefaultValue(null)]
+    [UIHint(nameof(SourceServer), "", false, null, "")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string SourceServerVaultRef { get; set; } = "";
     
     /// <summary>
     /// The path on the source server to check
@@ -850,7 +912,17 @@ public class BatchParams
     /// The configuration for the destination server (JSON)
     /// </summary>
     [DisplayFormat(DataFormatString = "Expression")]
+    [UIHint(nameof(DestinationServerVaultRef), "", false, null, "")]
+
     public string DestinationServer { get; set; }
+
+    /// <summary>
+    /// The destination server configuration path in Hashicorp Vault
+    /// </summary>
+    [DisplayFormat(DataFormatString = "Text")]
+    [UIHint(nameof(DestinationServer), "", false, null, "")]
+    [DefaultValue("")]
+    public string DestinationServerVaultRef { get; set; } = "";
     
     /// <summary>
     /// The path on the destination server to copy the files to
@@ -887,9 +959,16 @@ public class BatchParams
     /// <returns>ServerParams</returns>
     public ServerParams? GetSourceServerParams()
     {
+        var confSrc = SourceServer;
+        if (string.IsNullOrEmpty(confSrc) && !string.IsNullOrEmpty(SourceServerVaultRef))
+        {
+            confSrc = Helpers.GetVaultSecret(SourceServerVaultRef);
+        }
+
+
         return new ServerParams(){
             ConfigurationSource=ConfigurationType.Json,
-            JsonConfiguration=SourceServer
+            JsonConfiguration=confSrc
         };
     }
 
@@ -899,9 +978,15 @@ public class BatchParams
     /// <returns>ServerParams</returns>
     public ServerParams? GetDestinationServerParams()
     {
+        var confDst = DestinationServer;
+        if (string.IsNullOrEmpty(confDst) && !string.IsNullOrEmpty(DestinationServerVaultRef))
+        {
+            confDst = Helpers.GetVaultSecret(DestinationServerVaultRef);
+        }
+
        return new ServerParams(){
             ConfigurationSource=ConfigurationType.Json,
-            JsonConfiguration=DestinationServer
+            JsonConfiguration=confDst
         };
     }
 }

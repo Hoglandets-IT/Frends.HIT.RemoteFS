@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.IO;
 using FluentFTP;
+using System.ComponentModel;
 
 namespace Frends.HIT.RemoteFS;
 
@@ -12,17 +13,18 @@ public class FTP
         {
             case "ListFiles":
                 return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "ReadFile":
                 return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "WriteFile":
-                await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "DeleteFile":
-                await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "CreateDir":
-                await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
         }
 
         return true;
@@ -45,8 +47,21 @@ public class FTP
             
             foreach (FtpListItem item in listing)
             {
-                if (item.Type == FtpFileSystemObjectType.File)
-                {
+                if (
+                    (
+                        input.ListType == ObjectTypes.Both ||
+                        input.ListType == ObjectTypes.Files
+                    ) && item.Type == FtpFileSystemObjectType.File
+                ) {
+                    result.Add(item.Name);
+                }
+
+                if (
+                    (
+                        input.ListType == ObjectTypes.Both ||
+                        input.ListType == ObjectTypes.Directories
+                    ) && item.Type == FtpFileSystemObjectType.Directory
+                ) {
                     result.Add(item.Name);
                 }
             }

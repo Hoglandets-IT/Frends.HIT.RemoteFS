@@ -11,5 +11,7 @@
     <ProjectReference Include="..\Frends.HIT.RemoteFS\Frends.HIT.RemoteFS.csproj" />
   </ItemGroup>
 
-
+   <ItemGroup>
+     <PackageReference Include="Testcontainers" Version="3.8.0" />
+   </ItemGroup>
 </Project>

@@ -49,6 +49,69 @@ public class Main
         }
     }
 
+    private static async Task<List<string>> GetFileList(string basePath, int currentLevel, ListParams input, RecursiveListParams recInput, ServerParams connection) {
+        var result = new List<string>();
+
+        if (recInput.Exclude.Contains(basePath.Trim('/'))) {
+            return result;
+        }
+
+        var files = await ListFiles(
+            new ListParams() {
+                Path = Path.Join(input.Path, basePath),
+                Filter = input.Filter,
+                Pattern = input.Pattern,
+                ListType = ObjectTypes.Files
+            },
+            connection
+        );
+
+        var matchingFiles = Helpers.GetMatchingFiles(files.Files, input.Pattern, input.Filter);
+        if (matchingFiles.Count > 0) {
+            result.AddRange(matchingFiles);
+            
+            if (recInput.StopOnFirst) {
+                return result;
+            }
+        }
+
+        if (currentLevel >= recInput.Depth) {
+            return result;
+        }
+                
+        var nestedDirs = await ListFiles(
+            new ListParams() {
+                Path = Path.Join(input.Path, basePath),
+                Filter = input.Filter,
+                Pattern = input.Pattern,
+                ListType = ObjectTypes.Directories
+            },
+            connection
+        );
+
+        foreach (string dir in nestedDirs.Files) {
+            var nestedFiles = await GetFileList(Path.Join(basePath, dir), currentLevel + 1, input, recInput, connection);
+            
+            if (nestedFiles.Count > 0) {
+                result.AddRange(nestedFiles);
+                
+                if (recInput.StopOnFirst) {
+                    return result;
+                }
+            }
+        }
+
+        return result;
+    }
+
+ 
+    [DisplayName("Recursive File List")]
+    public static async Task<ListResult> ListFilesRecursive([PropertyTab] ListParams input, RecursiveListParams recInput, [PropertyTab] ServerParams connection) {
+
+        var files = await GetFileList("", 0, input, recInput, connection);
+        return new ListResult(files.Count, files);
+    }
+
     /// <summary>
     /// List files in a directory on a remote filesystem
     /// </summary>
@@ -70,6 +133,7 @@ public class Main
                     case ConnectionTypes.SMB:
                         files = await SMB.ListFiles(input, serverConfiguration);
                         break;
+
                     case ConnectionTypes.SFTP:
                         files = await SFTP.ListFiles(input, serverConfiguration);
                         break;
@@ -86,15 +150,15 @@ public class Main
                         files = await PulsenCombine.ListFiles(input, serverConfiguration);
                         break;
                 }
+                break;
             }
             catch (Exception ex) {
-                if (retryAmount >= connection.Retries) {
+                if (retryAmount >= connection.Retries || retryAmount == 0) {
                     throw ex;
-                }
-                else {
+                } else {
                     retryAmount++;
                 }
-            } 
+            }
         }
         
         
@@ -139,12 +203,12 @@ public class Main
                         content = await PulsenCombine.ReadFile(input, serverConfiguration);
                         break;
                 }
+                break;
             }
             catch (Exception ex) {
-                if (retryAmount >= connection.Retries) {
+                if (retryAmount >= connection.Retries || retryAmount == 0) {
                     throw ex;
-                }
-                else {
+                } else {
                     retryAmount++;
                 }
             } 
@@ -197,12 +261,12 @@ public class Main
                         await PulsenCombine.WriteFile(input, serverConfiguration);
                         break;
                 }
+                break;
             }
             catch (Exception ex) {
-                if (retryAmount >= connection.Retries) {
+                if (retryAmount >= connection.Retries || retryAmount == 0) {
                     throw ex;
-                }
-                else {
+                } else {
                     retryAmount++;
                 }
             } 
@@ -248,12 +312,12 @@ public class Main
                         await PulsenCombine.CreateDir(input, serverConfiguration);
                         break;
                 }
+                break;
             }
             catch (Exception ex) {
-                if (retryAmount >= connection.Retries) {
+                if (retryAmount >= connection.Retries || retryAmount == 0) {
                     throw ex;
-                }
-                else {
+                } else {
                     retryAmount++;
                 }
             } 
@@ -295,12 +359,12 @@ public class Main
                         await PulsenCombine.DeleteFile(input, serverConfiguration);
                         break;
                 }
+                break;
             }
             catch (Exception ex) {
-                if (retryAmount >= connection.Retries) {
+                if (retryAmount >= connection.Retries || retryAmount == 0) {
                     throw ex;
-                }
-                else {
+                } else {
                     retryAmount++;
                 }
             } 

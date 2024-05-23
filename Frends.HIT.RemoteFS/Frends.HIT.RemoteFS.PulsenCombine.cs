@@ -79,14 +79,16 @@ public class PulsenCombine
         {
             case "ListFiles":
                 return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "ReadFile":
                 return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "WriteFile":
-                await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "DeleteFile":
-                await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "CreateDir":
                 throw new Exception("CreateDir is not supported for PulsenCombine");
         }
@@ -103,6 +105,18 @@ public class PulsenCombine
     public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
         List<string> fileList = new List<string>();
+
+        if (input.ListType == ObjectTypes.Directories) {
+            if (input.Path.TrimEnd('/') != "financialfiles") {
+                return fileList;           
+            }
+
+            fileList.Add("generalledger");
+            fileList.Add("customerledger");
+            fileList.Add("paymentssus");
+
+            return fileList;
+        }
 
         using (var client = GetHttpClient(connection))
         {

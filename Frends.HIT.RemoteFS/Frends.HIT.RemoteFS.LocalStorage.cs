@@ -12,19 +12,18 @@ public class LocalStorage
         {
             case "ListFiles":
                 return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+
             case "ReadFile":
                 return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+
             case "WriteFile":
-                await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "DeleteFile":
-                await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "CreateDir":
-                await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
         }
 
         return true;
@@ -40,7 +39,18 @@ public class LocalStorage
         try
         {
             var folder = new DirectoryInfo(input.Path);
-            return folder.GetFiles().Select(x => x.Name).ToList();
+
+            if (input.ListType == ObjectTypes.Files) return folder.GetFiles().Select(x => x.Name).ToList();
+            if (input.ListType == ObjectTypes.Directories) return folder.GetDirectories().Select(x => x.Name).ToList();
+            if (input.ListType == ObjectTypes.Both) {
+                var files = folder.GetFiles().Select(x => x.Name).ToList();
+                var dirs = folder.GetDirectories().Select(x => x.Name).ToList();
+                files.AddRange(dirs);
+                return files;
+            }
+
+            throw new Exception("Invalid ListType");
+            
         }
         catch (Exception e)
         {

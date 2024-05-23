@@ -2,6 +2,10 @@
 Task for Frends Integration Platform for managing files, directories on and transferring files between remote filesystems
 
 ## Changelog
+### 0.10.1
+- Added the option to list only files or folders on all backends
+- Added the recursive list task
+- Added the option to get secrets from Hashicorp Vault (Note: See documentation for requirements)
 ### 0.9.1
 - Added the option to retrieve files from Pulsencombine (e.g. financialfiles/generalledger)
 ### 0.8.1
@@ -82,6 +86,15 @@ The JSON file contains all the fields above in lowercase with the addition of "c
 }
 ```
 ![](resources/images/serverconfig.png)
+
+### Hashicorp Vault
+To retrieve secrets from Hashicorp Vault, you need to set some environment variables for the Frends process, either in the container if running on Linux/Docker/Kubernetes or in the environment variables for the Windows service.
+
+| Variable | Example | Description |
+|---|---|---|
+| VAULT_ADDR | http://vault.example.com:8200 | The address of the Vault server |
+| VAULT_TOKEN | s.1234567890abcdef | The token to use for authentication |
+| VAULT_STORE | kv2 | The path to the secret storage engine in Vault |
 
 ## Filters
 When filters are available for listings or batch transfers, the following types are available

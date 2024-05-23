@@ -5,11 +5,50 @@ using EzSmb.Params;
 using FluentFTP;
 using Renci.SshNet;
 using Renci.SshNet.Common;
+using VaultSharp;
+using VaultSharp.V1.AuthMethods;
+using VaultSharp.V1.AuthMethods.Token;
+using VaultSharp.V1.Commons;
+using Newtonsoft.Json;
+
 
 namespace Frends.HIT.RemoteFS;
 
 class Helpers
 {
+    public static string GetVaultSecret(string path) {
+        var VaultAddr = Environment.GetEnvironmentVariable("VAULT_ADDR");
+        var VaultToken = Environment.GetEnvironmentVariable("VAULT_TOKEN");
+        var VaultStore = Environment.GetEnvironmentVariable("VAULT_STORE");
+
+        IAuthMethodInfo authMethod = new TokenAuthMethodInfo(VaultToken);
+        var vaultClientSettings = new VaultClientSettings(VaultAddr, authMethod);
+
+
+        IVaultClient vaultClient = new VaultClient(vaultClientSettings);
+
+        var kv22 = vaultClient.V1.Secrets.KeyValue.V2.ReadSecretAsync(path, mountPoint: VaultStore);
+
+        Secret<SecretData> kv2Secret = kv22.Result;
+
+        if (kv2Secret.Data.Data.Count == 0) {
+            throw new Exception("Vault secret " + path + " not found");
+        }
+        
+        if (kv2Secret.Data.Data.Count == 1) {
+            throw new Exception("Invalid vault secret " + path + ": Needs to contain at least connectiontype, address, username and password fields");
+        }
+
+        var rtnData = new Dictionary<string,string>();
+
+        foreach (var x in kv2Secret.Data.Data) {
+            rtnData[x.Key] = x.Value.ToString();
+        }
+
+        return JsonConvert.SerializeObject(rtnData);
+    }
+
+
     /// <summary>
     /// Remove all . and .. matches from a result
     /// </summary>

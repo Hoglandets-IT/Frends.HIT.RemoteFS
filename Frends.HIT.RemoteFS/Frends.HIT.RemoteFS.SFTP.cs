@@ -27,17 +27,18 @@ public class SFTP
         {
             case "ListFiles":
                 return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "ReadFile":
                 return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "WriteFile":
-                await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "DeleteFile":
-                await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "CreateDir":
-                await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
         }
 
         return true;
@@ -53,7 +54,13 @@ public class SFTP
         using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
             client.Connect();
-            var listing = new List<string>(client.ListDirectory(input.Path).Select(x => x.Name));
+            List<string> listing;
+
+            if (input.ListType == ObjectTypes.Files) listing = new List<string>(client.ListDirectory(input.Path).Where(x => x.IsRegularFile).Select(x => x.Name));
+            else if (input.ListType == ObjectTypes.Directories) listing = new List<string>(client.ListDirectory(input.Path).Where(x => x.IsDirectory).Select(x => x.Name));
+            else if (input.ListType == ObjectTypes.Both) listing = new List<string>(client.ListDirectory(input.Path).Select(x => x.Name));
+            else throw new Exception("Invalid ListType");
+
             client.Disconnect();
             return listing;
         }

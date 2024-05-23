@@ -7,6 +7,9 @@
       "TaskMethod": "Frends.HIT.RemoteFS.Main.ListFiles"
     },
     {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.ListFilesRecursive"
+    },
+    {
       "TaskMethod": "Frends.HIT.RemoteFS.Main.ReadFile"
     },
     {

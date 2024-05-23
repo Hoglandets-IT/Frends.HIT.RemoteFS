@@ -15,19 +15,18 @@ public class SMB
         {
             case "ListFiles":
                 return await ListFiles((ListParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+
             case "ReadFile":
                 return await ReadFile((ReadParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+
             case "WriteFile":
-                await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await WriteFile((WriteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "DeleteFile":
-                await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await DeleteFile((DeleteParams)parameters[0], (ServerConfiguration)parameters[1]);
+
             case "CreateDir":
-                await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
-                break;
+                return await CreateDir((CreateDirParams)parameters[0], (ServerConfiguration)parameters[1]);
         }
 
         return true;
@@ -41,7 +40,7 @@ public class SMB
     /// <param name="connection">The connection details for the server</param>
     public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
-        List<string> res = new List<string>();
+        List<string> result = new List<string>();
         var server = await Node.GetNode(Helpers.JoinPath("/", connection.Address, input.Path),
             Helpers.GetSMBConnectionParams(connection),
             true
@@ -57,30 +56,30 @@ public class SMB
         var listing = await server.GetList();
         if (listing == null)
         {
-            return res;
+            return result;
         }
         foreach (Node nod in listing)
         {
-            if (nod.Type == NodeType.File)
-            {
-                res.Add(nod.Name);
-            }
-            
-            // if (input.ListType == ObjectTypes.Both)
-            // {
-            //     res.Add(nod.Name);    
-            // }
-            // else if (input.ListType == ObjectTypes.Directories && nod.Type == NodeType.Folder)
-            // {
-                // res.Add(nod.Name);
-            // }
-            // else if (input.ListType == ObjectTypes.Files && nod.Type == NodeType.File)
-            // {
-                // res.Add(nod.Name);
-            // }
+             if (
+                    (
+                        input.ListType == ObjectTypes.Both ||
+                        input.ListType == ObjectTypes.Files
+                    ) && nod.Type == NodeType.File
+                ) {
+                    result.Add(nod.Name);
+                }
+
+                if (
+                    (
+                        input.ListType == ObjectTypes.Both ||
+                        input.ListType == ObjectTypes.Directories
+                    ) && nod.Type == NodeType.Folder
+                ) {
+                    result.Add(nod.Name);
+                }
         }
 
-        return res;
+        return result;
     }
    
     

@@ -1,44 +1,239 @@
-﻿using Frends.HIT.RemoteFS;
-using Frends.HIT.RemoteFS.Tests;
-using Renci.SshNet.Security;
-using SMBLibrary.SMB2;
+﻿using System.Diagnostics;
+using System.Net.Http;
+using DotNet.Testcontainers;
+using DotNet.Testcontainers.Builders;
+using Frends.HIT.RemoteFS;
 
-var serverParams = new ServerParams(){
-    ConfigurationSource = ConfigurationType.SFTP,
-    Address = "ftp.hoglandet.se",
-    Username = "hoglandet",
-    Password = "testfail",
-    Retries = 3,
-    RetryTimeout = 5
-};
+namespace Frends.HIT.RemoteFS.Tests {
+  
+  class DirTreeItem {
+    public string Name { get; set; }
+    public bool IsDir { get; set; }
+    public string Content { get; set; } = "";
+    public List<DirTreeItem> Children { get; set; } = new List<DirTreeItem>();
 
-var allf = new ListParams(){
-    Path = "financialfilez/generalledger",
-    Filter = FilterTypes.None,
-    Pattern = ""
-};
+    public DirTreeItem(string name, string content) {
+      Name = name;
+      Content = content;
+      IsDir = false;
+    }
 
-var filelist = await Main.ListFiles(allf, serverParams);
-Console.WriteLine(String.Join(", ", filelist.Files));
+    public DirTreeItem(string name, List<DirTreeItem> children) {
+      Name = name;
+      Children = children;
+      IsDir = true;
+    }
 
-var filezero = filelist.Files[0];
+    public void Create(string basePath) {
+      if (IsDir) {
+        if (!Directory.Exists(Path.Join(basePath, Name))) {
+            Directory.CreateDirectory(Path.Join(basePath, Name));
+            Console.WriteLine("Creating dir: " + Path.Join(basePath, Name));
+        }
+        
+        foreach (var child in Children) {
+          child.Create(Path.Join(basePath, Name));
+        }
 
-var rpar = new ReadParams(){
-    Path = "financialfilez/generalledger",
-    File = filezero
-};
-
-var filecontent = await Main.ReadFile(rpar, serverParams);
-Console.WriteLine(System.Text.Encoding.UTF8.GetString(filecontent.ByteContent));
-
+      } else if (!File.Exists(Path.Join(basePath, Name))) {
+        File.WriteAllText(Path.Join(basePath, Name), Content);
+        Console.WriteLine("Creating file: " + Path.Join(basePath, Name));
+      }
+    }
+  }
 
 
-// var SMB = new SMBTest();
-// await SMB.TestConvertToConnection();
-// await SMB.TestList();
-// // await SMB.TestRead();
-// // await SMB.TestWrite();
-// // await SMB.TestDelete();
+
+  class TestContainerInstances {
+    private string _sourceFolder = "src";
+    private string _destFolder = "dst";
+    private string _baseFolder = "";
+
+    private Dictionary<string,DotNet.Testcontainers.Containers.IContainer?> _containers = new Dictionary<string,DotNet.Testcontainers.Containers.IContainer?>();
+    private DotNet.Testcontainers.Containers.IContainer? _ftpContainer;
+
+    private DirTreeItem _dirTree { 
+      get {
+        return new DirTreeItem(
+            "",
+            new List<DirTreeItem>(){
+              new ("src", new List<DirTreeItem>(){
+                new ("parentDir", new List<DirTreeItem>(){
+                  new ("nested-file-one.txt", "Hello World!"),
+                  new ("nested-file-two.txt", "Hello World!"),
+                }),
+                  new ("file-one.txt", "Hello World!"),
+                  new ("file-two.txt", "Hello World!"),
+                }
+              ),
+              new ("dst", new List<DirTreeItem>(){
+                new ("ftp", new List<DirTreeItem>(){}),
+                new ("sftp", new List<DirTreeItem>(){}),
+                new ("smb", new List<DirTreeItem>(){}),
+              })
+            }
+        );
+      }
+    }
+
+  public string GetTemporaryDirectory()
+  {
+      string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+      if(File.Exists(tempDirectory)) {
+          return GetTemporaryDirectory();
+      } else {
+          Directory.CreateDirectory(tempDirectory);
+          return tempDirectory;
+      }
+  }
+
+    public void PrepareTestFiles() {
+      // Create temp dir
+      _baseFolder = GetTemporaryDirectory() + "/";
+
+      _sourceFolder = _baseFolder + "/" + _sourceFolder;
+      _destFolder = _baseFolder + "/" + _destFolder;
+
+      _dirTree.Create(_baseFolder);
+    }
+
+    public async Task<int> StartContainer(
+      string id, string image, 
+      int defaultPort, Dictionary<string, string> folders, 
+      List<int> symmetricPorts, Dictionary<string, string> envs) {
+        var container = new DotNet.Testcontainers.Builders.ContainerBuilder()
+          .WithImage(image)
+          .WithPrivileged(true)
+          .WithPortBinding(defaultPort, true);
+        
+        foreach (var p in symmetricPorts) {
+            container = container.WithPortBinding(p, p);
+        }
+
+        foreach (var e in envs) {
+            container = container.WithEnvironment(e.Key, e.Value);
+        }
+
+        foreach (var f in folders) {
+          container = container.WithBindMount(_baseFolder + f.Key, f.Value, DotNet.Testcontainers.Configurations.AccessMode.ReadWrite);
+        }
+
+        _containers[id] = container.Build();
+
+        await _containers[id].StartAsync().ConfigureAwait(false);
+        return _containers[id].GetMappedPublicPort(defaultPort);
+      }
+
+    public async Task<bool> RemoveFolders(string id, Dictionary<string,string> folders) {
+      // Get current user id
+      var uid = System.Environment.GetEnvironmentVariable("UID");
+
+      foreach (var folder in folders) {
+          await _containers[id].ExecAsync(new List<string>(){
+            "chown", "-R", uid + ":" + uid, folder.Value
+          });
+      }
+
+      return true;
+    }
+
+    public async Task<int> StartFtpServer(string username, string password, string folder) {
+      return await StartContainer(
+        "ftp",
+        "garethflowers/ftp-server",
+        21,
+        new Dictionary<string, string>(){
+          {Path.Join(_baseFolder, folder), Path.Join("/home", username)}
+        },
+        new List<int>(){
+          40000, 40001, 40002, 40003, 40004, 40005, 40006, 40007, 40008, 40009, 40010
+        },
+        new Dictionary<string, string>(){
+          {"FTP_USER", username},
+          {"FTP_PASS", password}
+        }
+      ).ConfigureAwait(false);
+    }
+
+    public async Task<int> EndFtpServer(string username) {
+      await RemoveFolders("ftp", new Dictionary<string,string>(){
+        {Path.Join("/home", username), Path.Join("/home", username)}
+      });
+
+      await _containers["ftp"].StopAsync().ConfigureAwait(false);
+
+      return 0;
+    }
+
+    // public async Task<int> StartSftpServer(string username, string password, string folder) {
+    //   return await StartContainer(
+    //     "sftp",
+    //     "atmoz/sftp",
+    //     22,
+
+    //   );
+    // }
+  }
 
 
-// Console.WriteLine("Tests passed!");
+  static class Program {
+    public static async Task TestFtpSimple(TestContainerInstances testCon) {
+        var ftpPort = await testCon.StartFtpServer("username", "password", "src");
+        Console.WriteLine("Started FTP Server on port: " + ftpPort);
+
+        var lParams = new Frends.HIT.RemoteFS.ListParams(){
+          Path = "/",
+          Filter = Frends.HIT.RemoteFS.FilterTypes.None,
+          Pattern = ""
+        };
+
+        var sParams = new Frends.HIT.RemoteFS.ServerParams(){
+          ConfigurationSource = Frends.HIT.RemoteFS.ConfigurationType.FTP,
+          Address = "localhost:" + ftpPort,
+          Username = "username",
+          Password = "password",
+          Retries = 0,
+          RetryTimeout = 5
+        };
+
+        var files = Frends.HIT.RemoteFS.Main.ListFiles(lParams, sParams).Result;
+        Console.WriteLine(files.Files.Count + " Files found for ftp");
+
+        Debug.Assert(files.Files.Count == 2);
+        Debug.Assert(files.Files.All(f => new List<string>(){"file-one.txt", "file-two.txt"}.Contains(f)));
+
+        lParams.Path = "/parentDir";
+        files = Frends.HIT.RemoteFS.Main.ListFiles(lParams, sParams).Result;
+
+        Console.WriteLine(files.Files.Count + " Files found for ftp/parentDir");
+        Debug.Assert(files.Files.Count == 2);
+        Debug.Assert(files.Files.All(f => new List<string>(){"nested-file-one.txt", "nested-file-two.txt"}.Contains(f)));
+
+        await testCon.EndFtpServer("username");
+        return;
+    }
+
+    
+
+    // public static async Task TestSftpSimple(TestContainerInstances testCon) {
+    //   var sftpPort = await testCon.StartSftpServer("username", "password", "src");
+
+
+    // }
+
+
+
+    public static async Task Main() {
+        Console.WriteLine("Starting tests");
+
+        var testContainerInstances = new TestContainerInstances();
+        testContainerInstances.PrepareTestFiles();
+
+        await TestFtpSimple(testContainerInstances);
+
+        
+    }
+  }
+}
+
