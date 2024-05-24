@@ -38,9 +38,11 @@ public class FTP
     public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
         var result = new List<string>();
-
+        var ftpx = Helpers.GetFTPConnection(connection);
+        ftpx.DataConnectionType = FtpDataConnectionType.AutoPassive;
         using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
+            
             client.AutoConnect();
             var listing = client.GetListing(input.Path, FtpListOption.Modify);
             client.Disconnect();

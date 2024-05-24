@@ -1,13 +1,9 @@
 ﻿using System.Diagnostics;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Text;
-using Newtonsoft.Json;
-using Renci.SshNet;
-using System.Threading.Tasks;
+
 
 namespace Frends.HIT.RemoteFS;
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 
 /// <summary>
 /// Main class for RemoteFS
@@ -15,41 +11,41 @@ namespace Frends.HIT.RemoteFS;
 [DisplayName("RemoteFS")]
 public class Main
 {
-    /// <summary>
-    /// Run an executable on the Frends agent server
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="args"></param>
-    /// <returns></returns>
-    [DisplayName("Run Executable")]
-    public static string RunExec(string command, string args)
-    {
-        string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-        string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
-        Console.WriteLine(strExeFilePath);
-        Console.WriteLine(strWorkPath);
-        using (var pp = new Process())
-        {
-            string stt = "";
-            pp.StartInfo.FileName = command;
-            pp.StartInfo.Arguments = args;
-            pp.StartInfo.WorkingDirectory = strWorkPath;
-            pp.StartInfo.CreateNoWindow = true;
-            pp.StartInfo.UseShellExecute = false;
-            pp.StartInfo.RedirectStandardOutput = true;
-            pp.StartInfo.RedirectStandardError = true;
+    // /// <summary>
+    // /// Run an executable on the Frends agent server
+    // /// </summary>
+    // /// <param name="command"></param>
+    // /// <param name="args"></param>
+    // /// <returns></returns>
+    // [DisplayName("Run Executable")]
+    // public static string RunExec(string command, string args)
+    // {
+    //     string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+    //     string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
+    //     Console.WriteLine(strExeFilePath);
+    //     Console.WriteLine(strWorkPath);
+    //     using (var pp = new Process())
+    //     {
+    //         string stt = "";
+    //         pp.StartInfo.FileName = command;
+    //         pp.StartInfo.Arguments = args;
+    //         pp.StartInfo.WorkingDirectory = strWorkPath;
+    //         pp.StartInfo.CreateNoWindow = true;
+    //         pp.StartInfo.UseShellExecute = false;
+    //         pp.StartInfo.RedirectStandardOutput = true;
+    //         pp.StartInfo.RedirectStandardError = true;
 
-            pp.OutputDataReceived += (sender, data) => Console.WriteLine("ot" + data.Data);
-            pp.ErrorDataReceived += (sender, data) => Console.WriteLine("er" + data.Data);
+    //         pp.OutputDataReceived += (sender, data) => Console.WriteLine("ot" + data.Data);
+    //         pp.ErrorDataReceived += (sender, data) => Console.WriteLine("er" + data.Data);
 
-            pp.Start();
-            pp.WaitForExit(1000*10);
-            stt = pp.StandardOutput.ReadToEnd().TrimEnd('\n');
-            return stt;
-        }
-    }
+    //         pp.Start();
+    //         pp.WaitForExit(1000*10);
+    //         stt = pp.StandardOutput.ReadToEnd().TrimEnd('\n');
+    //         return stt;
+    //     }
+    // }
 
-    private static async Task<List<string>> GetFileList(string basePath, int currentLevel, ListParams input, RecursiveListParams recInput, ServerParams connection) {
+    public static async Task<List<string>> GetFileList(string basePath, int currentLevel, ListParams input, RecursiveListParams recInput, ServerParams connection) {
         var result = new List<string>();
 
         if (recInput.Exclude.Contains(basePath.Trim('/'))) {
@@ -135,7 +131,7 @@ public class Main
                         break;
 
                     case ConnectionTypes.SFTP:
-                        files = await SFTP.ListFiles(input, serverConfiguration);
+                        files = await Frends.HIT.RemoteFS.SFTP.ListFiles(input, serverConfiguration);
                         break;
                     
                     case ConnectionTypes.LocalStorage:

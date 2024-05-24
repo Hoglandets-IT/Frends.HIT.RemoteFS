@@ -41,6 +41,8 @@ public class SMB
     public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
         List<string> result = new List<string>();
+        var gpath = Helpers.JoinPath("/", connection.Address, input.Path);
+
         var server = await Node.GetNode(Helpers.JoinPath("/", connection.Address, input.Path),
             Helpers.GetSMBConnectionParams(connection),
             true

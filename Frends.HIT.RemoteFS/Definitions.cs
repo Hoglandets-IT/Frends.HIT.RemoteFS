@@ -874,7 +874,7 @@ public class BatchParams
     /// <summary>
     /// The source server configuration (JSON)
     /// </summary>
-    [UIHint(nameof(SourceServerVaultRef), "", false, null, "")]
+    // [UIHint(nameof(SourceServerVaultRef), "", false, null, "")]
     [DisplayFormat(DataFormatString = "Expression")]
     public string SourceServer { get; set; }
     
@@ -882,7 +882,7 @@ public class BatchParams
     /// The source server configuration path in Hashicorp Vault
     /// </summary>
     [DefaultValue(null)]
-    [UIHint(nameof(SourceServer), "", false, null, "")]
+    // [UIHint(nameof(SourceServer), "", false, null, "")]
     [DisplayFormat(DataFormatString = "Text")]
     public string SourceServerVaultRef { get; set; } = "";
     
@@ -912,7 +912,7 @@ public class BatchParams
     /// The configuration for the destination server (JSON)
     /// </summary>
     [DisplayFormat(DataFormatString = "Expression")]
-    [UIHint(nameof(DestinationServerVaultRef), "", false, null, "")]
+    // [UIHint(nameof(DestinationServerVaultRef), "", false, null, "")]
 
     public string DestinationServer { get; set; }
 
@@ -920,7 +920,7 @@ public class BatchParams
     /// The destination server configuration path in Hashicorp Vault
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
-    [UIHint(nameof(DestinationServer), "", false, null, "")]
+    // [UIHint(nameof(DestinationServer), "", false, null, "")]
     [DefaultValue("")]
     public string DestinationServerVaultRef { get; set; } = "";
     

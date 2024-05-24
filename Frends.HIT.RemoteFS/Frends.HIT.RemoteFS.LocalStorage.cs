@@ -139,9 +139,18 @@ public class LocalStorage
     {
         string path = Helpers.JoinPath(Helpers.OSDirSeparator, input.Path, input.File);
 
-        if (!Directory.Exists(path))
+        if (!Directory.Exists(input.Path))
         {
             throw new Exception("File does not exist at " + path + ", is a directory");
+        }
+
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Error deleting file at " + path, e);
         }
 
         return true;

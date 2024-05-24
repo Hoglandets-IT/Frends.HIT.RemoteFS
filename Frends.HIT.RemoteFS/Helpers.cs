@@ -3,8 +3,9 @@ using System.Reflection;
 using System.Text;
 using EzSmb.Params;
 using FluentFTP;
-using Renci.SshNet;
-using Renci.SshNet.Common;
+using RenciRoot = Renci.SshNet;
+using RenciCommon = Renci.SshNet.Common;
+using RenciSftp = Renci.SshNet.Sftp;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
@@ -198,8 +199,9 @@ class Helpers
     /// Retrieve a ConnectionInfo object for a given server
     /// </summary>
     /// <returns>The connection parameters</returns>
-    public static ConnectionInfo GetSFTPConnectionInfo(ServerConfiguration input)
+    public static RenciRoot.ConnectionInfo GetSFTPConnectionInfo(ServerConfiguration input)
     {
+        // return new RenciRoot.ConnectionInfo("localhost", "username", new RenciRoot.AuthenticationMethod);
         var port = 22;
         
         string[] split = input.Address.Split(':');
@@ -208,32 +210,32 @@ class Helpers
         if (split.Length > 1) {
             port = Int32.Parse(split[1]);
         }
-        PrivateKeyFile privateKey;
+        RenciRoot.PrivateKeyFile privateKey;
 
-        var authMethods = new List<AuthenticationMethod>();
+        var authMethods = new List<RenciRoot.AuthenticationMethod>();
         
         if (String.IsNullOrEmpty(input.PrivateKey) == false)
         {
             string tempKeyLocation = SaveTemporaryFile(input.PrivateKey);
             if (String.IsNullOrEmpty(input.PrivateKeyPassword) == false)
             {
-                privateKey = new PrivateKeyFile(tempKeyLocation, input.PrivateKeyPassword);
+                privateKey = new RenciRoot.PrivateKeyFile(tempKeyLocation, input.PrivateKeyPassword);
             }
             else
             {
-                privateKey = new PrivateKeyFile(tempKeyLocation);    
+                privateKey = new RenciRoot.PrivateKeyFile(tempKeyLocation);    
             }
 
             File.Delete(tempKeyLocation);
-            authMethods.Add(new PrivateKeyAuthenticationMethod(input.Username, privateKey));
+            authMethods.Add(new RenciRoot.PrivateKeyAuthenticationMethod(input.Username, privateKey));
         }
 
         if (String.IsNullOrEmpty(input.Password) == false)
         {
-            authMethods.Add(new PasswordAuthenticationMethod(input.Username, input.Password));
+            authMethods.Add(new RenciRoot.PasswordAuthenticationMethod(input.Username, input.Password));
         }
         
-        return new ConnectionInfo(
+        return new RenciRoot.ConnectionInfo(
             host: host,
             port: port,
             username: input.Username,
@@ -260,21 +262,21 @@ class Helpers
     /// <param name="client"></param>
     /// <param name="expectedFp"></param>
     /// <returns></returns>
-    public static void VerifyFingerprint(SftpClient client, string expectedFp)
+    public static void VerifyFingerprint(RenciRoot.SftpClient client, string expectedFp)
     {
         string actual = "";
         if (Helpers.IsValidString(expectedFp))
         {
             try
             {
-                client.HostKeyReceived += delegate(object sender, HostKeyEventArgs e)
+                client.HostKeyReceived += delegate(object sender, RenciCommon.HostKeyEventArgs e)
                 {
                     var b = expectedFp.Split(':').Select(x => Convert.ToByte(x, 16)).ToArray();
                     actual = BitConverter.ToString(e.FingerPrint).Replace("-", ":");
                     e.CanTrust = e.FingerPrint.SequenceEqual(b);
                 };
             }
-            catch (SshConnectionException ex)
+            catch (RenciCommon.SshConnectionException ex)
             {
                 throw new Exception($"Failed to verify fingerprint (expected {expectedFp}, got {actual})", ex);
             }    

@@ -1,7 +1,6 @@
-﻿using System.Text;
-using Renci.SshNet;
-using Renci.SshNet.Common;
-using Renci.SshNet.Sftp;
+﻿using RenciRoot = Renci.SshNet;
+using RenciCommon = Renci.SshNet.Common;
+using RenciSftp = Renci.SshNet.Sftp;
 
 namespace Frends.HIT.RemoteFS;
 
@@ -51,10 +50,14 @@ public class SFTP
     /// <param name="connection">The connection details for the server</param>
     public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
-        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        
+        using (var client = new RenciRoot.SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
             client.Connect();
             List<string> listing;
+
+            listing = new List<string>(client.ListDirectory(input.Path).Select(x => x.Name));
+
 
             if (input.ListType == ObjectTypes.Files) listing = new List<string>(client.ListDirectory(input.Path).Where(x => x.IsRegularFile).Select(x => x.Name));
             else if (input.ListType == ObjectTypes.Directories) listing = new List<string>(client.ListDirectory(input.Path).Where(x => x.IsDirectory).Select(x => x.Name));
@@ -77,13 +80,11 @@ public class SFTP
 
         try
         {
-            using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
-            {
-                client.Connect();
-                var result = client.ReadAllBytes(path);
-                client.Disconnect();
-                return result;
-            }
+            using var client = new RenciRoot.SftpClient(Helpers.GetSFTPConnectionInfo(connection));
+            client.Connect();
+            var result = client.ReadAllBytes(path);
+            client.Disconnect();
+            return result;
         }
         catch (Exception e)
         {
@@ -100,7 +101,7 @@ public class SFTP
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
 
-        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        using (var client = new RenciRoot.SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {   
             client.Connect();
             // Check if the file exists
@@ -129,7 +130,7 @@ public class SFTP
     /// <param name="connection">The connection settings</param>
     public static async Task<bool> CreateDir(CreateDirParams input, ServerConfiguration connection)
     {
-        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        using (var client = new RenciRoot.SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
             client.Connect();
             if (input.Recursive)
@@ -141,14 +142,14 @@ public class SFTP
                     tPath.Add(part);
                     try
                     {
-                        SftpFileAttributes attrs = client.GetAttributes(string.Join('/', tPath));
+                        Renci.SshNet.Sftp.SftpFileAttributes attrs = client.GetAttributes(string.Join('/', tPath));
                         if (!attrs.IsDirectory)
                         {
                             client.Disconnect();
                             throw new Exception("There is a file in the way of creating these directories");
                         }
                     }
-                    catch (SftpPathNotFoundException)
+                    catch (RenciCommon.SftpPathNotFoundException)
                     {
                         client.CreateDirectory(string.Join('/', tPath));
                     }
@@ -173,7 +174,7 @@ public class SFTP
     {
         string path = Helpers.JoinPath("/", input.Path, input.File);
 
-        using (var client = new SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
+        using (var client = new RenciRoot.SftpClient(Helpers.GetSFTPConnectionInfo(connection)))
         {
             client.Connect();
             client.Delete(path);

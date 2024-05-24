@@ -101,7 +101,7 @@ namespace Frends.HIT.RemoteFS.Tests {
     public async Task<int> StartContainer(
       string id, string image, 
       int defaultPort, Dictionary<string, string> folders, 
-      List<int> symmetricPorts, Dictionary<string, string> envs) {
+      List<int> symmetricPorts, Dictionary<string, string> envs, List<string> args = null) {
         var container = new DotNet.Testcontainers.Builders.ContainerBuilder()
           .WithImage(image)
           .WithPrivileged(true)
@@ -119,10 +119,23 @@ namespace Frends.HIT.RemoteFS.Tests {
           container = container.WithBindMount(_baseFolder + f.Key, f.Value, DotNet.Testcontainers.Configurations.AccessMode.ReadWrite);
         }
 
+        if (args != null) {
+          container = container.WithCommand(args.ToArray());
+        }
+
         _containers[id] = container.Build();
 
         await _containers[id].StartAsync().ConfigureAwait(false);
         return _containers[id].GetMappedPublicPort(defaultPort);
+      }
+
+      public string GetContainerIP(string id) {
+        return _containers[id].IpAddress;
+        // var ip = await _containers[id]
+      }
+
+      public async Task EndContainer(string id) {
+        await _containers[id].DisposeAsync();
       }
 
     public async Task<bool> RemoveFolders(string id, Dictionary<string,string> folders) {
@@ -226,13 +239,94 @@ namespace Frends.HIT.RemoteFS.Tests {
 
     public static async Task Main() {
         Console.WriteLine("Starting tests");
-
         var testContainerInstances = new TestContainerInstances();
         testContainerInstances.PrepareTestFiles();
 
-        await TestFtpSimple(testContainerInstances);
 
-        
+      //   if (!Directory.Exists("/tmp/ftp-tests")) {
+      //     Directory.CreateDirectory("/tmp/ftp-tests");
+      //   }
+
+      //   // Basic FTP Tests
+      //   var cont = await testContainerInstances.StartContainer(
+      //   "ftp",
+      //   "garethflowers/ftp-server",
+      //   21,
+      //   new Dictionary<string, string>(){
+      //     {"dst/ftp", "/home/basicusername"}
+      //   },
+      //   new List<int>(){
+      //     40000, 40001, 40002, 40003,  40005, 40006, 40007, 40008, 40009, 40010
+      //   },
+      //   new Dictionary<string, string>(){
+      //     {"FTP_USER", "basicusername"},
+      //     {"FTP_PASS", "basicpassword"}
+      //   }
+      // ).ConfigureAwait(false);
+
+      // var ftp = new ReadWriteTests(new ServerParams(){
+      //     ConfigurationSource = ConfigurationType.FTP,
+      //     Address = "localhost:" + cont.ToString(),
+      //     Username = "basicusername",
+      //     Password = "basicpassword",
+      // });
+
+      // await ftp.RunTests("/");
+
+      // await testContainerInstances.EndContainer("ftp");
+
+        // Basic FTP Tests
+      // var cont = await testContainerInstances.StartContainer(
+      //   "ftp",
+      //   "atmoz/sftp",
+      //   22,
+      //   new Dictionary<string, string>(){},
+      //   new List<int>(){},
+      //   new Dictionary<string, string>(){},
+      //   new List<string>(){
+      //     "basicusername:basicpassword:::tstdir"
+      //   }
+      // ).ConfigureAwait(false);
+
+      // var sftp = new ReadWriteTests(new ServerParams(){
+      //     ConfigurationSource = ConfigurationType.SFTP,
+      //     Address = "localhost:" + cont.ToString(),
+      //     Username = "basicusername",
+      //     Password = "basicpassword",
+      // });
+
+      // await sftp.RunTests("tstdir");
+
+      // await testContainerInstances.EndContainer("ftp");
+
+      var cont = await testContainerInstances.StartContainer(
+        "samba",
+        "dperson/samba",
+        137,
+        new (){},
+        new (){
+          139, 445
+        },
+        new (){},
+        new List<string>(){
+          "-p",
+          "-u", "basicusername;basicpassword",
+          "-s", "tempfo;/tmp;no;no;no;basicusername"
+        }
+      );
+
+      var containerIp = testContainerInstances.GetContainerIP("samba");
+
+      var smb = new ReadWriteTests(new ServerParams(){
+          ConfigurationSource = ConfigurationType.SMB,
+          Address = "localhost",
+          Username = "basicusername",
+          Password = "basicpassword",
+      });
+
+      await smb.RunTests("tempfo/");
+
+      await testContainerInstances.EndContainer("samba");
     }
   }
 }
