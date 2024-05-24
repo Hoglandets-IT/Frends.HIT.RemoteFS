@@ -64,7 +64,9 @@ public class Main
 
         var matchingFiles = Helpers.GetMatchingFiles(files.Files, input.Pattern, input.Filter);
         if (matchingFiles.Count > 0) {
-            result.AddRange(matchingFiles);
+            foreach (string file in matchingFiles) {
+                result.Add(Path.Join(basePath, file));
+            }
             
             if (recInput.StopOnFirst) {
                 return result;
@@ -100,9 +102,15 @@ public class Main
         return result;
     }
 
- 
+    /// <summary>
+    /// List files recursively (multiple sub-folders)
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="recInput"></param>
+    /// <param name="connection"></param>
+    /// <returns></returns>
     [DisplayName("Recursive File List")]
-    public static async Task<ListResult> ListFilesRecursive([PropertyTab] ListParams input, RecursiveListParams recInput, [PropertyTab] ServerParams connection) {
+    public static async Task<ListResult> ListFilesRecursive([PropertyTab] ListParams input, [PropertyTab]RecursiveListParams recInput, [PropertyTab] ServerParams connection) {
 
         var files = await GetFileList("", 0, input, recInput, connection);
         return new ListResult(files.Count, files);
