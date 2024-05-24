@@ -118,6 +118,7 @@ For the tasks that have substitutions available (Backup file, Batch Transfer), t
 |{date}|SomeFile.txt|{date}_{source_filename}.{source_extension}.bak|2022-01-01_SomeFile.txt.bak|The current date in YYYY-MM-DD format|
 |{time}|SomeFile.txt|{date}_{time}_transfer.txt|2022-01-01_120120_transfer.txt|The current time in HHMMSS format|
 |{guid}|SomeFile.txt|{guid}_{source_filename}.{source_extension}|3d8759f5-aef8-4f5d-885a-e36803ac3d91_SomeFile.txt|The GUID for the batch item|
+|{datetime::format}|SomeFile.txt|{datetime::yyyyMMdd}_{source_filename}.{source_extension}|20220101_SomeFile.txt|The current date and time in the specified format|
 |{incremental}|SomeFile.txt|{source_filename}_{incremental}.{source_extension}|SomeFile.txt_1.txt|The incremental number for the batch item (requires configuration storage, see under batch transfer below)|
 
 

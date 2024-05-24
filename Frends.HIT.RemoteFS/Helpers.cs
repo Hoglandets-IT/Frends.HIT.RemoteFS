@@ -367,6 +367,14 @@ class Helpers
         // Insert date/timestamp
         sb = sb.Replace("{date}", DateTime.Now.ToString("yyyy-MM-dd"));
         sb = sb.Replace("{time}", DateTime.Now.ToString("hh-mm-ss"));
+
+        if (sb.Contains("{datetime::")) {
+            var match = Regex.Match(sb, "{datetime::(.*?)}");
+            if (match.Success) {
+                var format = match.Groups[1].Value;
+                sb = sb.Replace(match.Value, DateTime.Now.ToString(format));
+            }
+        }
         
         // Insert GUID
         sb = sb.Replace("{guid}", objectGuid);

@@ -933,6 +933,7 @@ public class BatchParams
     /// <summary>
     /// The filename to set for the files copied to the destination server
     /// Substitutions are available, check documentation
+    /// Example: {date}, {time}, {source_filename}, {source_extension}, {timestamp:yyyyMMddHHmmss}
     /// </summary>
     [DefaultValue("{source_filename}.{source_extension}")]
     [DisplayFormat(DataFormatString = "Text")]
