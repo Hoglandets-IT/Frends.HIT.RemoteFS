@@ -80,8 +80,8 @@ public class Main
         var nestedDirs = await ListFiles(
             new ListParams() {
                 Path = Path.Join(input.Path, basePath),
-                Filter = input.Filter,
-                Pattern = input.Pattern,
+                Filter = FilterTypes.None,
+                Pattern = "",
                 ListType = ObjectTypes.Directories
             },
             connection

@@ -242,64 +242,62 @@ namespace Frends.HIT.RemoteFS.Tests {
         var testContainerInstances = new TestContainerInstances();
         testContainerInstances.PrepareTestFiles();
 
-
-      //   if (!Directory.Exists("/tmp/ftp-tests")) {
-      //     Directory.CreateDirectory("/tmp/ftp-tests");
-      //   }
-
-      //   // Basic FTP Tests
-      //   var cont = await testContainerInstances.StartContainer(
-      //   "ftp",
-      //   "garethflowers/ftp-server",
-      //   21,
-      //   new Dictionary<string, string>(){
-      //     {"dst/ftp", "/home/basicusername"}
-      //   },
-      //   new List<int>(){
-      //     40000, 40001, 40002, 40003,  40005, 40006, 40007, 40008, 40009, 40010
-      //   },
-      //   new Dictionary<string, string>(){
-      //     {"FTP_USER", "basicusername"},
-      //     {"FTP_PASS", "basicpassword"}
-      //   }
-      // ).ConfigureAwait(false);
-
-      // var ftp = new ReadWriteTests(new ServerParams(){
-      //     ConfigurationSource = ConfigurationType.FTP,
-      //     Address = "localhost:" + cont.ToString(),
-      //     Username = "basicusername",
-      //     Password = "basicpassword",
-      // });
-
-      // await ftp.RunTests("/");
-
-      // await testContainerInstances.EndContainer("ftp");
+        if (!Directory.Exists("/tmp/ftp-tests")) {
+          Directory.CreateDirectory("/tmp/ftp-tests");
+        }
 
         // Basic FTP Tests
-      // var cont = await testContainerInstances.StartContainer(
-      //   "ftp",
-      //   "atmoz/sftp",
-      //   22,
-      //   new Dictionary<string, string>(){},
-      //   new List<int>(){},
-      //   new Dictionary<string, string>(){},
-      //   new List<string>(){
-      //     "basicusername:basicpassword:::tstdir"
-      //   }
-      // ).ConfigureAwait(false);
+        var cont = await testContainerInstances.StartContainer(
+        "ftp",
+        "garethflowers/ftp-server",
+        21,
+        new Dictionary<string, string>(){
+          {"dst/ftp", "/home/basicusername"}
+        },
+        new List<int>(){
+          40000, 40001, 40002, 40003,  40005, 40006, 40007, 40008, 40009, 40010
+        },
+        new Dictionary<string, string>(){
+          {"FTP_USER", "basicusername"},
+          {"FTP_PASS", "basicpassword"}
+        }
+      ).ConfigureAwait(false);
 
-      // var sftp = new ReadWriteTests(new ServerParams(){
-      //     ConfigurationSource = ConfigurationType.SFTP,
-      //     Address = "localhost:" + cont.ToString(),
-      //     Username = "basicusername",
-      //     Password = "basicpassword",
-      // });
+      var ftp = new ReadWriteTests(new ServerParams(){
+          ConfigurationSource = ConfigurationType.FTP,
+          Address = "localhost:" + cont.ToString(),
+          Username = "basicusername",
+          Password = "basicpassword",
+      });
 
-      // await sftp.RunTests("tstdir");
+      await ftp.RunTests("/");
 
-      // await testContainerInstances.EndContainer("ftp");
+      await testContainerInstances.EndContainer("ftp");
 
-      var cont = await testContainerInstances.StartContainer(
+      cont = await testContainerInstances.StartContainer(
+        "ftp",
+        "atmoz/sftp",
+        22,
+        new Dictionary<string, string>(){},
+        new List<int>(){},
+        new Dictionary<string, string>(){},
+        new List<string>(){
+          "basicusername:basicpassword:::tstdir"
+        }
+      ).ConfigureAwait(false);
+
+      var sftp = new ReadWriteTests(new ServerParams(){
+          ConfigurationSource = ConfigurationType.SFTP,
+          Address = "localhost:" + cont.ToString(),
+          Username = "basicusername",
+          Password = "basicpassword",
+      });
+
+      await sftp.RunTests("tstdir");
+
+      await testContainerInstances.EndContainer("ftp");
+
+      cont = await testContainerInstances.StartContainer(
         "samba",
         "dperson/samba",
         137,
@@ -327,6 +325,31 @@ namespace Frends.HIT.RemoteFS.Tests {
       await smb.RunTests("tempfo/");
 
       await testContainerInstances.EndContainer("samba");
+
+      // var testNestedFilters = new ServerParams(){
+      //   ConfigurationSource = ConfigurationType.SMB,
+      //   Address = "",
+      //   Username = "",
+      //   Domain = "",
+      //   Password = ""
+      // };
+
+      // var lParams = new Frends.HIT.RemoteFS.ListParams(){
+      //     Filter = Frends.HIT.RemoteFS.FilterTypes.Wildcard,
+      //     Pattern = "*.xml",
+      //     Path = ""
+      // };
+
+      // var rclParams = new Frends.HIT.RemoteFS.RecursiveListParams(){
+      //   Depth = 2,
+      // };
+
+
+      // var lst = await Frends.HIT.RemoteFS.Main.ListFilesRecursive(lParams, rclParams, testNestedFilters);
+
+      // foreach (string lsx in lst.Files) {
+      //   Console.WriteLine(lsx);
+      // }
     }
   }
 }
