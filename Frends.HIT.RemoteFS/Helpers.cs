@@ -27,10 +27,22 @@ class Helpers
 
 
         IVaultClient vaultClient = new VaultClient(vaultClientSettings);
+        
+        Secret<SecretData> kv2Secret;
+        try {
+            var kv22 = vaultClient.V1.Secrets.KeyValue.V2.ReadSecretAsync(path, mountPoint: VaultStore);
+            kv2Secret = kv22.Result;
+        }
+        catch (Exception ex) {
+            throw new Exception("Vault secret at path " + path + " not found: " + ex.Message);
+        }
 
-        var kv22 = vaultClient.V1.Secrets.KeyValue.V2.ReadSecretAsync(path, mountPoint: VaultStore);
-
-        Secret<SecretData> kv2Secret = kv22.Result;
+        if (kv2Secret == null) {
+            Thread.Sleep(1500);
+            if (kv2Secret == null) {
+                throw new Exception("Vault secret " + path + " not found");
+            }
+        }
 
         if (kv2Secret.Data.Data.Count == 0) {
             throw new Exception("Vault secret " + path + " not found");
