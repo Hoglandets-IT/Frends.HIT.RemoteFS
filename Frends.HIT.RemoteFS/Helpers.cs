@@ -347,6 +347,10 @@ class Helpers
         {
             return "";
         }
+
+        if (sourceFilename.Contains('/')) {
+            sourceFilename = sourceFilename.Split('/').Last();
+        }
         
         string sb = input;
         var split = sourceFilename.Split('.');
