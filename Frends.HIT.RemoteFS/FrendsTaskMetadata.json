@@ -22,6 +22,9 @@
       "TaskMethod": "Frends.HIT.RemoteFS.Main.CopyFile"
     },
     {
+      "TaskMethod": "Frends.HIT.RemoteFS.Main.MoveFile"
+    },
+    {
       "TaskMethod": "Frends.HIT.RemoteFS.Main.BatchTransfer"
     }
   ]

@@ -413,6 +413,42 @@ public class Main
         return new CopyResult(true);
     }
 
+     /// <summary>
+    /// Move a file between two remote filesystems (with delete source)
+    /// </summary>
+    /// <param name="sourceInput"></param>
+    /// <param name="sourceConnection"></param>
+    /// <param name="destinationInput"></param>
+    /// <param name="destinationConnection"></param>
+    /// <returns>CopyResult { Success bool; }</returns>
+    [DisplayName("Move File")]
+    public static async Task<CopyResult> MoveFile(
+        [PropertyTab] ReadParams sourceInput,
+        [PropertyTab] ServerParams sourceConnection,
+        [PropertyTab] CopyDestParams destinationInput,
+        [PropertyTab] ServerParams destinationConnection
+    )
+    {
+        var file = await ReadFile(sourceInput, sourceConnection);
+        await WriteFile(
+            destinationInput.GetWriteParams(
+                file.Content,
+                file.ByteContent
+            ),
+            destinationConnection
+        );
+
+        await DeleteFile(
+            new DeleteParams(){
+                Path = sourceInput.Path,
+                File = sourceInput.File
+            },
+            sourceConnection
+        );
+
+        return new CopyResult(true);
+    }
+
     /// <summary>
     /// Transfer multiple files between remote filesystems
     /// </summary>
