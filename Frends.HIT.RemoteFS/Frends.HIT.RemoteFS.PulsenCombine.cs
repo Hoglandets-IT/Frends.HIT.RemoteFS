@@ -167,7 +167,7 @@ public class PulsenCombine
     /// <param name="connection">The connection settings</param>
     public static async Task<bool> WriteFile(WriteParams input, ServerConfiguration connection)
     {
-        return true;
+        throw new Exception("Not implemented for this server type");
     }
 
     /// <summary>
@@ -176,8 +176,8 @@ public class PulsenCombine
     /// <param name="input">The params to identify the directory</param>
     /// <param name="connection">The connection settings</param>
     public static async Task<bool> CreateDir(CreateDirParams input, ServerConfiguration connection)
-    {
-        return true;
+     {
+        throw new Exception("Not implemented for this server type");
     }
 
     /// <summary>

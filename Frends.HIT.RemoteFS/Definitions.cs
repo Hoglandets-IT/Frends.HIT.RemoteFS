@@ -108,7 +108,13 @@ public enum ConnectionTypes
     /// Pulsen Combine
     /// </summary>
     [Display(Name = "Pulsen Combine")]
-    PulsenCombine
+    PulsenCombine,
+
+    /// <summary>
+    /// Pulsen Combine
+    /// </summary>
+    [Display(Name = "Edlevo API")]
+    EdlevoApi
 }
 
 /// <summary>
@@ -156,7 +162,13 @@ public enum ConfigurationType
     /// Manual Config - Pulsen Combine
     /// </summary>
     [Display(Name = "Pulsen Combine")]
-    PulsenCombine
+    PulsenCombine,
+
+    /// <summary>
+    /// Manual Config - Edlevo
+    /// </summary>
+    [Display(Name = "Edlevo API")]
+    EdlevoApi
 }
 
 /// <summary>
@@ -219,7 +231,7 @@ public class ServerConfiguration
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
     [Display(Name = "Hostname/IP Address")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP, ConnectionTypes.PulsenCombine)]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP, ConnectionTypes.PulsenCombine, ConnectionTypes.EdlevoApi)]
     public string Address { get; set; }
 
     /// <summary>
@@ -250,7 +262,7 @@ public class ServerConfiguration
     /// The Certificate used for Mutual TLS Authentication
     /// </summary>
     [DefaultValue("")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.PulsenCombine)]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.PulsenCombine, ConnectionTypes.EdlevoApi)]
     [Display(Name = "Certificate")]
     public string Certificate { get; set; }
     
@@ -258,7 +270,7 @@ public class ServerConfiguration
     /// The PrivateKey used for connecting to the remote SFTP server
     /// </summary>
     [DefaultValue("")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP, ConnectionTypes.PulsenCombine)]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP, ConnectionTypes.PulsenCombine, ConnectionTypes.EdlevoApi)]
     [Display(Name = "Private Key")]
     public string PrivateKey { get; set; }
     
@@ -266,9 +278,18 @@ public class ServerConfiguration
     /// (optional) The password for the private key above
     /// </summary>
     [DefaultValue("")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP, ConnectionTypes.PulsenCombine)]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SFTP, ConnectionTypes.PulsenCombine, ConnectionTypes.EdlevoApi)]
     [Display(Name = "Private Key Password/Passphrase")]
     public string PrivateKeyPassword { get; set; }
+
+    /// <summary>
+    /// License key for accessing Edlevo API
+    /// </summary>
+    /// <value></value>
+    [DefaultValue("")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.EdlevoApi)]
+    [Display(Name = "Edlevo License Key")]
+    public string LicenseKey { get; set; }
     
     /// <summary>
     /// (optional) The fingerprint of the SFTP server for verification (Empty for no verification)
@@ -290,6 +311,7 @@ public class ServerConfiguration
     /// <param name="privatekey">The private key used for the connection (string, SFTP and PulsenCombine only, optional)</param>
     /// <param name="privatekeypassword">The password for the private key used for the connection (string, SFTP only, optional)</param>
     /// <param name="fingerprint">The remote fingerprint for verification (string, SFTP only, optional)</param>
+    /// <param name="licensekey">The license key for Edlevo API</param>
     public ServerConfiguration(
         ConnectionTypes connectiontype,
         string address,
@@ -299,7 +321,8 @@ public class ServerConfiguration
         string certificate,
         string privatekey,
         string privatekeypassword,
-        string fingerprint
+        string fingerprint,
+        string licensekey
     )
     {
         ConnectionType = connectiontype;
@@ -311,6 +334,7 @@ public class ServerConfiguration
         PrivateKey = privatekey;
         PrivateKeyPassword = privatekeypassword;
         Fingerprint = fingerprint;
+        LicenseKey = licensekey;
     }
 
     /// <summary>
@@ -325,6 +349,7 @@ public class ServerConfiguration
     /// <param name="privatekey">The private key used for the connection (string, SFTP only, optional)</param>
     /// <param name="privatekeypassword">The password for the private key used for the connection (string, SFTP only, optional)</param>
     /// <param name="fingerprint">The remote fingerprint for verification (string, SFTP only, optional)</param>
+    /// <param name="licensekey">The license key for Edlevo API</param>
     [JsonConstructor]
     public ServerConfiguration(
         string connectiontype,
@@ -335,7 +360,8 @@ public class ServerConfiguration
         string certificate,
         string privatekey,
         string privatekeypassword,
-        string fingerprint
+        string fingerprint,
+        string licensekey
     )
     {
         if (!Enum.TryParse(typeof(ConnectionTypes), (string)connectiontype, true, out var tester ))
@@ -352,6 +378,7 @@ public class ServerConfiguration
         PrivateKey = privatekey;
         PrivateKeyPassword = privatekeypassword;
         Fingerprint = fingerprint;
+        LicenseKey = licensekey;
     }
 
     /// <summary>
@@ -427,7 +454,7 @@ public class ServerParams
     /// <summary>
     /// The Certificate used for connecting to PulsenCombine
     /// </summary>
-    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.PulsenCombine)]
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.PulsenCombine, ConfigurationType.EdlevoApi)]
     [Display(Name = "mTLS Certificate")]
     [DisplayFormat(DataFormatString = "Text")]
     public string Certificate { get; set; } = "";
@@ -435,10 +462,19 @@ public class ServerParams
     /// <summary>
     /// The PrivateKey used for connecting to the remote SFTP server or PulsenCombine
     /// </summary>
-    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP, ConfigurationType.PulsenCombine)]
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.SFTP, ConfigurationType.PulsenCombine, ConfigurationType.EdlevoApi)]
     [Display(Name = "Private Key")]
     [DisplayFormat(DataFormatString = "Text")]
     public string PrivateKey { get; set; } = "";
+
+    /// <summary>
+    /// The LicenseKey used for connecting to Edlevo API
+    /// </summary>
+    /// <value></value>
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.EdlevoApi)]
+    [Display(Name = "License Key")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string LicenseKey { get; set; } = "";
     
 	/// <summary>
     /// The PrivateKey used for connecting to the remote SFTP server
@@ -492,7 +528,8 @@ public class ServerParams
             certificate: Certificate,
             privatekey: PrivateKey,
             privatekeypassword: PrivateKeyPassword,
-            fingerprint: Fingerprint
+            fingerprint: Fingerprint,
+            licensekey: LicenseKey
         );
     }
 }

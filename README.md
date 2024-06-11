@@ -84,7 +84,24 @@ The JSON file contains all the fields above in lowercase with the addition of "c
     "username": "someaduser",
     "password": "somepassword"
 }
+
+# PulsenCombine
+{
+    "connectiontype": "PulsenCombine",
+    "address": "integrations.pulsencombine-a.se",
+    "certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+    "privatekey": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----",
+}
+
+# Edlevo
+{
+    "connectiontype": "Edlevo",
+    "address": "prodintegration-education.service.tieto.com",
+    "certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+    "privatekey": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----",
+    "licensekey": "..."
 ```
+
 ![](resources/images/serverconfig.png)
 
 ### Hashicorp Vault

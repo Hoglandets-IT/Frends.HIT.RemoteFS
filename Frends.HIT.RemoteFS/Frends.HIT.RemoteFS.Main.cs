@@ -153,6 +153,13 @@ public class Main
                     case ConnectionTypes.PulsenCombine:
                         files = await PulsenCombine.ListFiles(input, serverConfiguration);
                         break;
+                    
+                    case ConnectionTypes.EdlevoApi:
+                        files = await Edlevo.ListFiles(input, serverConfiguration);
+                        break;
+                    
+                    default:
+                        throw new Exception("Connection type not supported");
                 }
                 break;
             }
@@ -206,6 +213,12 @@ public class Main
                     case ConnectionTypes.PulsenCombine:
                         content = await PulsenCombine.ReadFile(input, serverConfiguration);
                         break;
+                    case ConnectionTypes.EdlevoApi:
+                        content = await Edlevo.ReadFile(input, serverConfiguration);
+                        break;
+                    
+                    default:
+                        throw new Exception("Connection type not supported");
                 }
                 break;
             }
@@ -220,7 +233,7 @@ public class Main
         
         
         string encoded = "";
-        if (input.Encoding != FileEncodings.RAW) {
+        if (input.Encoding != FileEncodings.RAW && content != null && content.Length > 0) {
             Encoding encType = Helpers.EncodingFromEnum(input.Encoding);
             encoded = encType.GetString(content);
         }
@@ -264,6 +277,13 @@ public class Main
                     case ConnectionTypes.PulsenCombine:
                         await PulsenCombine.WriteFile(input, serverConfiguration);
                         break;
+                    
+                    case ConnectionTypes.EdlevoApi:
+                        await Edlevo.WriteFile(input, serverConfiguration);
+                        break;
+                    
+                    default:
+                        throw new Exception("Connection type not supported");
                 }
                 break;
             }
@@ -315,6 +335,13 @@ public class Main
                     case ConnectionTypes.PulsenCombine:
                         await PulsenCombine.CreateDir(input, serverConfiguration);
                         break;
+                    
+                    case ConnectionTypes.EdlevoApi:
+                        await Edlevo.CreateDir(input, serverConfiguration);
+                        break;
+                    
+                    default:
+                        throw new Exception("Connection type not supported");
                 }
                 break;
             }
@@ -362,6 +389,13 @@ public class Main
                     case ConnectionTypes.PulsenCombine:
                         await PulsenCombine.DeleteFile(input, serverConfiguration);
                         break;
+
+                    case ConnectionTypes.EdlevoApi:
+                        await Edlevo.DeleteFile(input, serverConfiguration);
+                        break;
+                    
+                    default:
+                        throw new Exception("Connection type not supported");
                 }
                 break;
             }
