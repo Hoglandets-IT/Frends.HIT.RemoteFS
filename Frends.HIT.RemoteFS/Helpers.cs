@@ -72,6 +72,10 @@ public class Helpers
         var items = path.Split('/');
         var secret = items[items.Length - 1];
         var secretPath = string.Join('/', items.Take(items.Length - 1));
+        
+        if (!secretPath.StartsWith("/")) {
+            secretPath = "/" + secretPath;
+        }
 
         if (secretPath.Contains(".")) {
             secretPath = secretPath.Replace(".", "_");
