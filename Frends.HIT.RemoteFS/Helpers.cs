@@ -11,12 +11,87 @@ using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.Commons;
 using Newtonsoft.Json;
+using System.Web;
+using System.Net;
 
 
 namespace Frends.HIT.RemoteFS;
 
-class Helpers
+class SecretType {
+    [JsonProperty("environment")]
+    public string Environment { get; set; }
+
+    [JsonProperty("secretKey")]
+    public string SecretKey { get; set; }
+
+    [JsonProperty("secretValue")]
+    public string SecretValue { get; set; }
+
+    [JsonProperty("type")]
+    public string Type { get; set; }
+
+    [JsonProperty("version")]
+    public int Version { get; set; }
+}
+
+class SecretResponse {
+    [JsonProperty("secret")]
+    public SecretType Secret { get; set; }
+}
+
+
+public class Helpers
 {
+    public static string GetInfisicalSecret(string path) {
+        var InfisicalAddr = Environment.GetEnvironmentVariable("INFISICAL_ADDR");
+        var InfisicalClientId = Environment.GetEnvironmentVariable("INFISICAL_CLIENT_ID");
+        var InfisicalClientSecret = Environment.GetEnvironmentVariable("INFISICAL_CLIENT_SECRET");
+        var InfisicalProject = Environment.GetEnvironmentVariable("INFISICAL_PROJECT");
+        var InfisicalEnvironment = Environment.GetEnvironmentVariable("INFISICAL_ENVIRONMENT");
+
+        var handler = new HttpClientHandler
+        {
+            ClientCertificateOptions = ClientCertificateOption.Manual,
+            SslProtocols = System.Security.Authentication.SslProtocols.Tls12,
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        };
+
+        var client = new HttpClient(handler);
+
+        var response = client.PostAsync(InfisicalAddr + "/api/v1/auth/universal-auth/login", new StringContent(JsonConvert.SerializeObject(new {
+            clientId = InfisicalClientId,
+            clientSecret = InfisicalClientSecret
+        }), Encoding.UTF8, "application/json")).Result;
+
+        if (!response.IsSuccessStatusCode) {
+            throw new Exception("Failed to authenticate to Infisical: " + response.ReasonPhrase);
+        }
+
+        var token = JsonConvert.DeserializeObject<Dictionary<string, string>>(response.Content.ReadAsStringAsync().Result)["accessToken"];
+
+        var items = path.Split('/');
+        var secret = items[items.Length - 1];
+        var secretPath = string.Join('/', items.Take(items.Length - 1));
+
+        if (secretPath.Contains(".")) {
+            secretPath = secretPath.Replace(".", "_");
+        }
+
+        secretPath = HttpUtility.UrlEncode(secretPath);
+        var fullAddr = InfisicalAddr + "/api/v3/secrets/raw/" + secret + "?workspaceId=" + InfisicalProject + "&secretPath=" + secretPath + "&environment=" + InfisicalEnvironment;
+
+        client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+        var request = client.GetAsync(fullAddr).Result;
+        if (!request.IsSuccessStatusCode) {
+            throw new Exception("Failed to get secret from Infisical: " + request.ReasonPhrase);
+        }
+
+        SecretResponse secretResponse = JsonConvert.DeserializeObject<SecretResponse>(request.Content.ReadAsStringAsync().Result);
+
+        return secretResponse.Secret.SecretValue;
+    }
+
     public static string GetVaultSecret(string path) {
         var VaultAddr = Environment.GetEnvironmentVariable("VAULT_ADDR");
         var VaultToken = Environment.GetEnvironmentVariable("VAULT_TOKEN");

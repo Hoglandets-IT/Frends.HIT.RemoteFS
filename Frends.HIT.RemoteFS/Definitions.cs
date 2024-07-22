@@ -511,7 +511,8 @@ public class ServerParams
     public ServerConfiguration GetServerConfiguration()
     {
         if (ConfigurationSource == ConfigurationType.HcpVault) {
-            JsonConfiguration = Helpers.GetVaultSecret(VaultPath);
+            // JsonConfiguration = Helpers.GetVaultSecret(VaultPath);
+            JsonConfiguration = Helpers.GetInfisicalSecret(VaultPath);
         }
 
         if (ConfigurationSource == ConfigurationType.Json || ConfigurationSource == ConfigurationType.HcpVault)
@@ -1000,7 +1001,8 @@ public class BatchParams
         var confSrc = SourceServer;
         if (string.IsNullOrEmpty(confSrc) && !string.IsNullOrEmpty(SourceServerVaultRef))
         {
-            confSrc = Helpers.GetVaultSecret(SourceServerVaultRef);
+            // confSrc = Helpers.GetVaultSecret(SourceServerVaultRef);
+            confSrc = Helpers.GetInfisicalSecret(SourceServerVaultRef);
         }
 
 
@@ -1019,7 +1021,8 @@ public class BatchParams
         var confDst = DestinationServer;
         if (string.IsNullOrEmpty(confDst) && !string.IsNullOrEmpty(DestinationServerVaultRef))
         {
-            confDst = Helpers.GetVaultSecret(DestinationServerVaultRef);
+            // confDst = Helpers.GetVaultSecret(DestinationServerVaultRef);
+            confDst = Helpers.GetInfisicalSecret(DestinationServerVaultRef);
         }
 
        return new ServerParams(){

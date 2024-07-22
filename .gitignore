@@ -356,3 +356,7 @@ Frends.HIT.RemoteFS.Tests/core
 Frends.HIT.RemoteFS.Tests/ProgramManualTest.cs
 
 .mono/
+
+
+
+*.test.http
