@@ -255,7 +255,6 @@ public class ServerConfiguration
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
     [Display(Name = "Hostname/IP Address")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP, ConnectionTypes.PulsenCombine, ConnectionTypes.EdlevoApi, ConnectionTypes.SpeedadminApi, ConnectionTypes.S3)]
     public string Address { get; set; }
 
     /// <summary>
@@ -509,7 +508,6 @@ public class ServerParams
     /// The hostname or IP address of the server
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
-    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.FTP, ConfigurationType.SFTP, ConfigurationType.SMB)]
     [Display(Name = "Hostname/IP Address")]
     public string Address { get; set; } = "";
     
