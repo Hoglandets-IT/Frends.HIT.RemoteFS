@@ -240,28 +240,42 @@ namespace Frends.HIT.RemoteFS.Tests {
     public static async Task Main() {
         Console.WriteLine("Staring tests with speedadmin");
 
-        var testSettings = LocalVariables.S3TestParams;
+        var testSettings = LocalVariables.SpeedadminApiJson;
+
         var listConfig = new ListParams(){
           Path = "/",
         };
 
-        var listFiles = await Frends.HIT.RemoteFS.Main.ListFiles(listConfig, testSettings);
-        Console.WriteLine("Files found: " + listFiles.Count);
+        var serverConfig = new ServerParams{
+          ConfigurationSource = ConfigurationType.Json,
+          JsonConfiguration = testSettings
+        };
 
-        foreach (var file in listFiles.Files) {
-          Console.WriteLine(file);
-        }
+        var listFiles = await Frends.HIT.RemoteFS.Main.ListFiles(listConfig, serverConfig);
 
-        var readfile = await Frends.HIT.RemoteFS.Main.ReadFile(new ReadParams(){
-          Path="/",
-          File = listFiles.Files[0],
-          Encoding = FileEncodings.ASCII
-        }, testSettings);
 
-        Console.WriteLine("Read file: " + readfile.ByteContent.Length + " bytes");
-        Console.WriteLine("Read file: " + readfile.Content + " bytes");
+        // var testSettings = LocalVariables.S3TestParams;
+        // var listConfig = new ListParams(){
+        //   Path = "/",
+        // };
 
-        return;
+        // var listFiles = await Frends.HIT.RemoteFS.Main.ListFiles(listConfig, testSettings);
+        // Console.WriteLine("Files found: " + listFiles.Count);
+
+        // foreach (var file in listFiles.Files) {
+        //   Console.WriteLine(file);
+        // }
+
+        // var readfile = await Frends.HIT.RemoteFS.Main.ReadFile(new ReadParams(){
+        //   Path="/",
+        //   File = listFiles.Files[0],
+        //   Encoding = FileEncodings.ASCII
+        // }, testSettings);
+
+        // Console.WriteLine("Read file: " + readfile.ByteContent.Length + " bytes");
+        // Console.WriteLine("Read file: " + readfile.Content + " bytes");
+
+        // return;
         
         
         

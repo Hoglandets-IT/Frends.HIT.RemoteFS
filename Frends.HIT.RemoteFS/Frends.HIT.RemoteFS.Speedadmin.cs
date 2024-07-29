@@ -1,9 +1,5 @@
 using System.Text;
-using System.IO;
-using FluentFTP;
-using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json;
-using System.Net.Http.Json;
 
 namespace Frends.HIT.RemoteFS;
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -89,10 +85,12 @@ public class Speedadmin
 
         using (var client = GetHttpClient(connection))
         {
-            using( var resp = await client.PostAsJsonAsync($"https://{connection.Address}/v1/bookkeepings/", new {
-                Take=500,
-                Skip=0
-            })) {
+            using( var resp = await client.PostAsync($"https://{connection.Address}/v1/bookkeepings/", new StringContent(
+                JsonConvert.SerializeObject(new {
+                    Take=500,
+                    Skip=0
+                }), Encoding.UTF8, "application/json"
+            ))) {
                 if (resp.IsSuccessStatusCode) {
                     var content = await resp.Content.ReadAsStringAsync();
                     var bookkeepings = JsonConvert.DeserializeObject<BookkeepingsListResponse>(content);
@@ -195,13 +193,15 @@ public class Speedadmin
 
         using (var client = GetHttpClient(connection))
         {
-            using ( var markPending = await client.PostAsJsonAsync($"https://{connection.Address}/v1/bookkeepings/{fileId}/setstatus", new {
-                BookkeepingId=fileIdInt,
-                Status="IntegratedExportDone",
-                Text="Read by integration platform"
-            })) {
-                if (!markPending.IsSuccessStatusCode) {
-                    throw new Exception($"Failed to mark file {input.File} as pending: {markPending.ReasonPhrase}");
+            using( var resp = await client.PostAsync($"https://{connection.Address}/v1/bookkeepings/{fileId}/setstatus", new StringContent(
+                JsonConvert.SerializeObject(new {
+                    BookkeepingId=fileIdInt,
+                    Status="IntegratedExportDone",
+                    Text="Read by integration platform"
+                }), Encoding.UTF8, "application/json"
+            ))) {
+                if (!resp.IsSuccessStatusCode) {
+                    throw new Exception($"Failed to mark file {input.File} as pending: {resp.ReasonPhrase}");
                 }
 
                 return true;
