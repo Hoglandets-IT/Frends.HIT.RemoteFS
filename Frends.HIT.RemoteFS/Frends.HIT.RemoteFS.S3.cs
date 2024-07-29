@@ -82,7 +82,7 @@ public class S3
                     continue;
                 }
                 if (pureKey.Contains('/')) {
-                    if (pureKey.EndsWith("/") && (input.ListType == ObjectTypes.Directories || input.ListType == ObjectTypes.Both)) {
+                    if (pureKey.EndsWith("/") && (input.ListType == ObjectTypes.Directories || input.ListType == ObjectTypes.Both) && !Strings.RemovePostfix(pureKey, "/").Contains('/')) {
                         fileList.Add(Strings.RemovePostfix(pureKey, "/"));
                     }
                     continue;
