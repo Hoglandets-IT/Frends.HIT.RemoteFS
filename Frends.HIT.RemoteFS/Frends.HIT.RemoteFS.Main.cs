@@ -158,6 +158,14 @@ public class Main
                         files = await Edlevo.ListFiles(input, serverConfiguration);
                         break;
                     
+                    case ConnectionTypes.SpeedadminApi:
+                        files = await Speedadmin.ListFiles(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.S3:
+                        files = await S3.ListFiles(input, serverConfiguration);
+                        break;
+                    
                     default:
                         throw new Exception("Connection type not supported");
                 }
@@ -216,7 +224,13 @@ public class Main
                     case ConnectionTypes.EdlevoApi:
                         content = await Edlevo.ReadFile(input, serverConfiguration);
                         break;
-                    
+                    case ConnectionTypes.SpeedadminApi:
+                        content = await Speedadmin.ReadFile(input, serverConfiguration);
+                        break;
+                    case ConnectionTypes.S3:
+                        content = await S3.ReadFile(input, serverConfiguration);
+                        break;
+
                     default:
                         throw new Exception("Connection type not supported");
                 }
@@ -281,6 +295,13 @@ public class Main
                     case ConnectionTypes.EdlevoApi:
                         await Edlevo.WriteFile(input, serverConfiguration);
                         break;
+                    case ConnectionTypes.SpeedadminApi:
+                        await Speedadmin.WriteFile(input, serverConfiguration);
+                        break;
+                    
+                    case ConnectionTypes.S3:
+                        await S3.WriteFile(input, serverConfiguration);
+                        break;
                     
                     default:
                         throw new Exception("Connection type not supported");
@@ -340,6 +361,14 @@ public class Main
                         await Edlevo.CreateDir(input, serverConfiguration);
                         break;
                     
+                    case ConnectionTypes.SpeedadminApi:
+                        await Speedadmin.CreateDir(input, serverConfiguration);
+                        break;
+
+                    case ConnectionTypes.S3:
+                        await S3.CreateDir(input, serverConfiguration);
+                        break;
+
                     default:
                         throw new Exception("Connection type not supported");
                 }
@@ -393,6 +422,15 @@ public class Main
                     case ConnectionTypes.EdlevoApi:
                         await Edlevo.DeleteFile(input, serverConfiguration);
                         break;
+                    
+                    case ConnectionTypes.SpeedadminApi:
+                        await Speedadmin.DeleteFile(input, serverConfiguration);
+                        break;
+
+                    case ConnectionTypes.S3:
+                        await S3.DeleteFile(input, serverConfiguration);
+                        break;
+                        
                     
                     default:
                         throw new Exception("Connection type not supported");

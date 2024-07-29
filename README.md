@@ -17,6 +17,10 @@ Task for Frends Integration Platform for managing files, directories on and tran
 ### FTP
 ### SFTP
 ### SMB
+### Pulsen Combine Files API
+### Edlevo API
+### Speedadmin API
+### S3
 ### SCP (Upcoming)
 ### HTTP/s (Upcoming)
 
@@ -100,7 +104,29 @@ The JSON file contains all the fields above in lowercase with the addition of "c
     "certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
     "privatekey": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----",
     "licensekey": "..."
+}
+
+# Speedadmin
+{
+    "connectiontype": "Speedadmin",
+    "address": "",
+    "secretKey": ""
+}
+
+# S3
+{
+    "connectiontype": "S3",
+    "address": "s3.amazonaws.com",
+    "region": "eu-west",
+    "bucket": "somebucket",
+    "secretId": "someaccessId",
+    "secretKey": "somesecret"
+}
+
+
 ```
+
+
 
 ![](resources/images/serverconfig.png)
 

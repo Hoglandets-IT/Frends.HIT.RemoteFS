@@ -111,10 +111,22 @@ public enum ConnectionTypes
     PulsenCombine,
 
     /// <summary>
-    /// Pulsen Combine
+    /// Edlevo API
     /// </summary>
     [Display(Name = "Edlevo API")]
-    EdlevoApi
+    EdlevoApi,
+    
+    /// <summary>
+    /// Speedadmin API
+    /// </summary>
+    [Display(Name = "Speedadmin API")]
+    SpeedadminApi,
+
+    /// <summary>
+    /// S3 Object Storage
+    /// </summary>
+    [Display(Name = "S3 Object Storage")]
+    S3
 }
 
 /// <summary>
@@ -168,7 +180,19 @@ public enum ConfigurationType
     /// Manual Config - Edlevo
     /// </summary>
     [Display(Name = "Edlevo API")]
-    EdlevoApi
+    EdlevoApi,
+
+    /// <summary>
+    /// Manual Config - Speedadmin API
+    /// </summary>
+    [Display(Name = "Speedadmin API")]
+    SpeedadminApi,
+
+    /// <summary>
+    /// Manual Config - S3 Object Storage
+    /// </summary>
+    [Display(Name = "S3 Object Storage")]
+    S3
 }
 
 /// <summary>
@@ -231,7 +255,7 @@ public class ServerConfiguration
     /// </summary>
     [DisplayFormat(DataFormatString = "Text")]
     [Display(Name = "Hostname/IP Address")]
-    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP, ConnectionTypes.PulsenCombine, ConnectionTypes.EdlevoApi)]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.SMB, ConnectionTypes.SFTP, ConnectionTypes.FTP, ConnectionTypes.PulsenCombine, ConnectionTypes.EdlevoApi, ConnectionTypes.SpeedadminApi, ConnectionTypes.S3)]
     public string Address { get; set; }
 
     /// <summary>
@@ -300,6 +324,44 @@ public class ServerConfiguration
     public string Fingerprint { get; set; }
 
     /// <summary>
+    /// Secret ID for accessing S3 object storage
+    /// </summary>
+    /// <value></value>
+    [DefaultValue("")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.S3)]
+    [Display(Name = "Secret ID")]
+    public string SecretId { get; set; }
+
+    /// <summary>
+    /// Secret Key for accessing S3 or Speedadmin API
+    /// </summary>
+    /// <value></value>
+    [DefaultValue("")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.S3, ConnectionTypes.SpeedadminApi)]
+    [Display(Name = "Secret Key/API Key")]
+    public string SecretKey { get; set; }
+
+    /// <summary>
+    /// Region for S3 storage
+    /// </summary>
+    /// <value></value>
+    [DefaultValue("")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.S3)]
+    [Display(Name = "S3 Region")]
+    public string S3Region { get; set; }
+
+
+    /// <summary>
+    /// Bucket for S3 storage
+    /// </summary>
+    /// <value></value>
+    [DefaultValue("")]
+    [UIHint(nameof(ConnectionType), "", ConnectionTypes.S3)]
+    [Display(Name = "S3 Bucket")]
+    public string S3Bucket { get; set; }
+
+
+    /// <summary>
     /// Initialize a new ServerConfiguration object
     /// </summary>
     /// <param name="connectiontype">The type of connection (SMB/FTP/SFTP)</param>
@@ -312,6 +374,10 @@ public class ServerConfiguration
     /// <param name="privatekeypassword">The password for the private key used for the connection (string, SFTP only, optional)</param>
     /// <param name="fingerprint">The remote fingerprint for verification (string, SFTP only, optional)</param>
     /// <param name="licensekey">The license key for Edlevo API</param>
+    /// <param name="secretid">The secret id for S3 object storage</param>
+    /// <param name="secretkey">The secret key for S3 or API Key</param>
+    /// <param name="s3region">The region for S3 object storage</param>
+    /// <param name="s3bucket">The bucket for S3 object storage</param>
     public ServerConfiguration(
         ConnectionTypes connectiontype,
         string address,
@@ -322,7 +388,11 @@ public class ServerConfiguration
         string privatekey,
         string privatekeypassword,
         string fingerprint,
-        string licensekey
+        string licensekey,
+        string secretid,
+        string secretkey,
+        string s3region,
+        string s3bucket
     )
     {
         ConnectionType = connectiontype;
@@ -335,6 +405,10 @@ public class ServerConfiguration
         PrivateKeyPassword = privatekeypassword;
         Fingerprint = fingerprint;
         LicenseKey = licensekey;
+        SecretId = secretid;
+        SecretKey = secretkey;
+        S3Region = s3region;
+        S3Bucket = s3bucket;
     }
 
     /// <summary>
@@ -350,6 +424,10 @@ public class ServerConfiguration
     /// <param name="privatekeypassword">The password for the private key used for the connection (string, SFTP only, optional)</param>
     /// <param name="fingerprint">The remote fingerprint for verification (string, SFTP only, optional)</param>
     /// <param name="licensekey">The license key for Edlevo API</param>
+    /// <param name="secretid">The secret id for S3 object storage</param>
+    /// <param name="secretkey">The secret key for S3 or API Key</param>
+    /// <param name="s3region">The region for S3 object storage</param>
+    /// <param name="s3bucket">The bucket for S3 object storage</param>
     [JsonConstructor]
     public ServerConfiguration(
         string connectiontype,
@@ -361,7 +439,11 @@ public class ServerConfiguration
         string privatekey,
         string privatekeypassword,
         string fingerprint,
-        string licensekey
+        string licensekey,
+        string secretid,
+        string secretkey,
+        string s3region,
+        string s3bucket
     )
     {
         if (!Enum.TryParse(typeof(ConnectionTypes), (string)connectiontype, true, out var tester ))
@@ -379,6 +461,10 @@ public class ServerConfiguration
         PrivateKeyPassword = privatekeypassword;
         Fingerprint = fingerprint;
         LicenseKey = licensekey;
+        SecretId = secretid;
+        SecretKey = secretkey;
+        S3Region = s3region;
+        S3Bucket = s3bucket;
     }
 
     /// <summary>
@@ -493,6 +579,42 @@ public class ServerParams
     public string Fingerprint { get; set; } = "";
 
     /// <summary>
+    /// Secret ID for accessing S3 object storage
+    /// </summary>
+    /// <value></value>
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.S3)]
+    [Display(Name = "Secret ID")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string SecretId { get; set; } = "";
+
+    /// <summary>
+    /// Secret Key for accessing S3 or Speedadmin API
+    /// </summary>
+    /// <value></value>
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.S3, ConfigurationType.SpeedadminApi)]
+    [Display(Name = "Secret Key/API Key")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string SecretKey { get; set; } = "";
+
+    /// <summary>
+    /// Region for S3 storage
+    /// </summary>
+    /// <value></value>
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.S3)]
+    [Display(Name = "S3 Region")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string S3Region { get; set; } = "";
+
+    /// <summary>
+    /// Bucket for S3 storage
+    /// </summary>
+    /// <value></value>
+    [UIHint(nameof(ConfigurationSource), "", ConfigurationType.S3)]
+    [Display(Name = "S3 Bucket")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string S3Bucket { get; set; } = "";
+
+    /// <summary>
     /// Amount of retries to do before throwing an error
     /// </summary>
     [Display(Name = "Retries")]
@@ -530,7 +652,11 @@ public class ServerParams
             privatekey: PrivateKey,
             privatekeypassword: PrivateKeyPassword,
             fingerprint: Fingerprint,
-            licensekey: LicenseKey
+            licensekey: LicenseKey,
+            secretid: SecretId,
+            secretkey: SecretKey,
+            s3region: S3Region,
+            s3bucket: S3Bucket
         );
     }
 }
