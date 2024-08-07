@@ -13,6 +13,8 @@ using VaultSharp.V1.Commons;
 using Newtonsoft.Json;
 using System.Web;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
+using System.Runtime.InteropServices;
 
 
 namespace Frends.HIT.RemoteFS;
@@ -42,6 +44,24 @@ class SecretResponse {
 
 public class Helpers
 {
+    public static X509Certificate2 CertificateWorkaround(X509Certificate2 inCert) {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            return inCert;
+        }
+
+        var certOnly = new X509Certificate2(inCert.Export(X509ContentType.Cert));
+
+        X509Certificate2 certWithKey;
+        if (inCert.GetRSAPrivateKey() != null) {
+            certWithKey = certOnly.CopyWithPrivateKey(inCert.GetRSAPrivateKey());
+        } else {
+            certWithKey = certOnly.CopyWithPrivateKey(inCert.GetECDsaPrivateKey());
+        }
+            
+        return new X509Certificate2(certWithKey.Export(X509ContentType.Pkcs12));
+    }
+
+
     public static string GetInfisicalSecret(string path) {
         var InfisicalAddr = Environment.GetEnvironmentVariable("INFISICAL_ADDR");
         var InfisicalClientId = Environment.GetEnvironmentVariable("INFISICAL_CLIENT_ID");

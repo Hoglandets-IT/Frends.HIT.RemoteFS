@@ -36,7 +36,10 @@ public class PulsenCombine
             SslProtocols = System.Security.Authentication.SslProtocols.Tls12,
             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
         };
-        handler.ClientCertificates.Add(cert);
+
+        // Certificate workaround for Windows machines not supporting loading straight ephemeral PEM certificates
+        X509Certificate2 useCert = Helpers.CertificateWorkaround(cert);
+        handler.ClientCertificates.Add(useCert);
 
         HttpClient client = new HttpClient(handler);
         client.DefaultRequestHeaders.Add("X-Api-Version", "1");
