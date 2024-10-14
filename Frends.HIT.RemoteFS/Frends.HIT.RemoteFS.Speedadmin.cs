@@ -193,7 +193,7 @@ public class Speedadmin
 
         using (var client = GetHttpClient(connection))
         {
-            using( var resp = await client.PostAsync("https://{connection.Address}/v1/bookkeepings/setstatus", new StringContent(
+            using( var resp = await client.PostAsync($"https://{connection.Address}/v1/bookkeepings/setstatus", new StringContent(
                 JsonConvert.SerializeObject(new {
                     BookkeepingId=fileIdInt,
                     Status="IntegratedExportDone",
