@@ -11,16 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-    - name: Build and publish
-      uses: hoglandets-it/gha-dotnet-builder@main
+    - name: Checkout
+      uses: actions/checkout@v2
       with:
-        buildShell: bash
-        buildVersion: VERSION
-        incrementVersion: patch
-        incrementVersionWriteback: "true"
-        writebackName: "AutoPush"
-        writebackEmail: "developer@hoglan.dev"
-        buildConfiguration: "Release"
-        includeSource: "true"
-        packageFeedUrl: ${{ secrets.FRENDS_NUGET_FEED_URL }}
-        packageFeedSecret: ${{ secrets.FRENDS_NUGET_FEED_KEY }}
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 8.x
+
+    - name: Restore
+      run: |
+        dotnet restore ${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj
+    
+    - name: Test
+      run: |
+        dotnet test ${{ github.event.repository.name }}.Tests/${{ github.event.repository.name }}.csproj
+    
+    - name: Test Build and Pack
+      run: |
+        dotnet build --configuration Release ${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj /p:Version=$GITHUB_REF_NAME
+        dotnet pack --configuration Release ${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj --include-source /p:Version=$GITHUB_REF_NAME
