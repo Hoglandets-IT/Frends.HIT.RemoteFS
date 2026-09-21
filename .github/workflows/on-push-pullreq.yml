@@ -24,10 +24,11 @@ jobs:
     - name: Restore
       run: |
         dotnet restore ${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj
+        dotnet restore ${{ github.event.repository.name }}.Tests/${{ github.event.repository.name }}.Tests.csproj
     
     - name: Test
       run: |
-        dotnet test ${{ github.event.repository.name }}.Tests/${{ github.event.repository.name }}.csproj
+        dotnet test ${{ github.event.repository.name }}.Tests/${{ github.event.repository.name }}.Tests.csproj
     
     - name: Test Build and Pack
       run: |
