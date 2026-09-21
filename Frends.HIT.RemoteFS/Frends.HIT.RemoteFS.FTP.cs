@@ -38,11 +38,9 @@ public class FTP
     public static async Task<List<string>> ListFiles(ListParams input, ServerConfiguration connection)
     {
         var result = new List<string>();
-        var ftpx = Helpers.GetFTPConnection(connection);
-        ftpx.DataConnectionType = FtpDataConnectionType.AutoPassive;
         using (FtpClient client = Helpers.GetFTPConnection(connection))
         {
-            
+            client.Config.DataConnectionType = FtpDataConnectionType.AutoPassive;
             client.AutoConnect();
             var listing = client.GetListing(input.Path, FtpListOption.Modify);
             client.Disconnect();
@@ -53,7 +51,7 @@ public class FTP
                     (
                         input.ListType == ObjectTypes.Both ||
                         input.ListType == ObjectTypes.Files
-                    ) && item.Type == FtpFileSystemObjectType.File
+                    ) && item.Type == FtpObjectType.File
                 ) {
                     result.Add(item.Name);
                 }
@@ -62,7 +60,7 @@ public class FTP
                     (
                         input.ListType == ObjectTypes.Both ||
                         input.ListType == ObjectTypes.Directories
-                    ) && item.Type == FtpFileSystemObjectType.Directory
+                    ) && item.Type == FtpObjectType.Directory
                 ) {
                     result.Add(item.Name);
                 }
@@ -88,7 +86,7 @@ public class FTP
                 client.AutoConnect();
 
                 var memStream = new MemoryStream();
-                var file = client.Download(memStream, path);
+                var file = client.DownloadStream(memStream, path);
 
                 client.Disconnect();
                 return memStream.ToArray();
@@ -113,14 +111,10 @@ public class FTP
         {
             client.AutoConnect();
            
-            FtpRemoteExists overwrite = FtpRemoteExists.Overwrite;
-            if (input.Overwrite)
-            {
-                overwrite = FtpRemoteExists.Overwrite;
-            }
+            FtpRemoteExists overwrite = input.Overwrite ? FtpRemoteExists.Overwrite : FtpRemoteExists.Skip;
             
             var memStream = new MemoryStream(input.ByteContent);
-            var file = client.Upload(memStream, path, overwrite, false);
+            var file = client.UploadStream(memStream, path, overwrite, false);
             if (file == FtpStatus.Failed || file == FtpStatus.Skipped)
             {
                 throw new Exception($"Error writing to path {path} on server {connection.Address} (File exists or directory does not exist)");

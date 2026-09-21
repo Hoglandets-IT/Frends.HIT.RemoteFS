@@ -15,10 +15,17 @@ public class S3
 
     private static AmazonS3Client GetS3Client(ServerConfiguration connection)
     {
+        // The address is a hostname, optionally with a port, and is assumed to be https unless it says otherwise
+        var serviceUrl = new Uri(connection.Address.Contains("://") ? connection.Address : $"https://{connection.Address}");
+
         AmazonS3Client client = new AmazonS3Client(connection.SecretId, connection.SecretKey, new AmazonS3Config {
-            ServiceURL = $"https://{connection.Address}",
+            ServiceURL = serviceUrl.ToString(),
+            // The bucket can't be put in front of an IP address, so it has to go in the path
+            ForcePathStyle = serviceUrl.HostNameType != UriHostNameType.Dns || serviceUrl.Host == "localhost",
             AuthenticationRegion = connection.S3Region,
             Timeout = System.TimeSpan.FromSeconds(10),
+            RequestChecksumCalculation = Amazon.Runtime.RequestChecksumCalculation.WHEN_REQUIRED,
+            ResponseChecksumValidation = Amazon.Runtime.ResponseChecksumValidation.WHEN_REQUIRED,
         });
 
         return client;
@@ -65,31 +72,47 @@ public class S3
 
         using (var client = GetS3Client(connection))
         {
-            var noPrefixPath = Strings.RemovePrefix(input.Path, "/");
+            // A prefix without a trailing slash would also match siblings (dir2/ when listing dir)
+            var prefix = input.Path.Trim('/');
+            if (prefix != "") {
+                prefix += "/";
+            }
 
-            var response = await client.ListObjectsV2Async(new ListObjectsV2Request{
+            bool includeFiles = input.ListType == ObjectTypes.Files || input.ListType == ObjectTypes.Both;
+            bool includeDirs = input.ListType == ObjectTypes.Directories || input.ListType == ObjectTypes.Both;
+
+            var request = new ListObjectsV2Request{
                 BucketName = connection.S3Bucket,
-                Prefix = noPrefixPath,
-            });
+                Prefix = prefix,
+                Delimiter = "/",
+            };
 
-            if (response.HttpStatusCode != System.Net.HttpStatusCode.OK) {
-                throw new Exception($"Failed to list files: {response.HttpStatusCode}");
-            }
+            ListObjectsV2Response response;
+            do {
+                response = await client.ListObjectsV2Async(request);
 
-            foreach (var item in response.S3Objects) {
-                var pureKey = Strings.RemovePrefix(item.Key, noPrefixPath);
-                if (pureKey == "") {
-                    continue;
+                if (response.HttpStatusCode != System.Net.HttpStatusCode.OK) {
+                    throw new Exception($"Failed to list files: {response.HttpStatusCode}");
                 }
-                if (pureKey.Contains('/')) {
-                    if (pureKey.EndsWith("/") && (input.ListType == ObjectTypes.Directories || input.ListType == ObjectTypes.Both) && !Strings.RemovePostfix(pureKey, "/").Contains('/')) {
-                        fileList.Add(Strings.RemovePostfix(pureKey, "/"));
+
+                if (includeFiles) {
+                    foreach (var item in response.S3Objects ?? new List<S3Object>()) {
+                        var name = Strings.RemovePrefix(item.Key, prefix);
+                        // The directory itself shows up if it was created as an empty object
+                        if (name != "") {
+                            fileList.Add(name);
+                        }
                     }
-                    continue;
                 }
 
-                fileList.Add(pureKey);
-            }
+                if (includeDirs) {
+                    foreach (var dir in response.CommonPrefixes ?? new List<string>()) {
+                        fileList.Add(Strings.RemovePostfix(Strings.RemovePrefix(dir, prefix), "/"));
+                    }
+                }
+
+                request.ContinuationToken = response.NextContinuationToken;
+            } while (response.IsTruncated == true);
         }
 
         return fileList;
@@ -129,13 +152,16 @@ public class S3
 
         using (var client = GetS3Client(connection)) {
             if (!input.Overwrite) {
-                var exists = await client.GetObjectMetadataAsync(new GetObjectMetadataRequest{
-                    BucketName = connection.S3Bucket,
-                    Key = path,
-                });
+                try {
+                    await client.GetObjectMetadataAsync(new GetObjectMetadataRequest{
+                        BucketName = connection.S3Bucket,
+                        Key = path,
+                    });
 
-                if (exists.HttpStatusCode == System.Net.HttpStatusCode.OK && !input.Overwrite) {
                     throw new Exception($"Failed to write file {input.File} - already exists");
+                }
+                catch (AmazonS3Exception e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
+                    // The file doesn't exist, so it's safe to write
                 }
             }
 
@@ -171,7 +197,15 @@ public class S3
     /// <param name="connection">The connection settings</param>
     public static async Task<bool> DeleteFile(DeleteParams input, ServerConfiguration connection)
     {
-        // TODO: Implement this
-        return false;
+        string path = Strings.RemovePrefix(Helpers.JoinPath("/", input.Path, input.File), "/");
+
+        using (var client = GetS3Client(connection)) {
+            await client.DeleteObjectAsync(new DeleteObjectRequest{
+                BucketName = connection.S3Bucket,
+                Key = path,
+            });
+
+            return true;
+        }
     }
 }

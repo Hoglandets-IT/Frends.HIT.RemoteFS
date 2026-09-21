@@ -364,7 +364,7 @@ public class Helpers
             port = Int32.Parse(split[1]);
         }
 
-        return new FtpClient(host, port, input.Username, input.Password);
+        return new FtpClient(host, input.Username, input.Password, port);
     }
 
     /// <summary>

@@ -190,8 +190,9 @@ public class SMB
                 if (recCurrent == null)
                 {
                     await parent.CreateFolder(splitPath[i]);
-                    parent = await Node.GetNode(recPath, pSet);
+                    recCurrent = await Node.GetNode(recPath, pSet);
                 }
+                parent = recCurrent;
             }
         }
         

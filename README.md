@@ -354,6 +354,17 @@ The result of a single batch item
 ## Development
 If you have an idea, an enhancement or want to add another remote module feel free to submit a pull request.
 
+### Running the tests
+The tests for FTP, SFTP, SMB and S3 run against disposable servers started with [Testcontainers](https://dotnet.testcontainers.org/), so the only requirement is a running Docker daemon:
+
+```
+dotnet test
+```
+
+Every connection type runs the same set of tests, defined in `RemoteFsTests.cs`. To cover another connection type, add a fixture that starts a server for it in `Fixtures/` and a one-line test class at the bottom of `RemoteFsTests.cs`.
+
+The SMB client can only connect on port 445, so those tests talk to the container's own IP address and are skipped where that isn't reachable from the host (Docker Desktop).
+
 ### Adding modules for remote types
 There are 4 things that need to be edited to add another type of remote:
 
